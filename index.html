@@ -15,18 +15,18 @@
   <!-- หน้าจอ Login -->
   <div id="loginSection" class="min-h-screen flex items-center justify-center p-4">
     <div class="bg-white p-8 rounded-2xl shadow-md w-full max-w-md">
-      <h1 class="text-2xl font-semibold text-center text-indigo-600 mb-1">Workload Notification</h1>
+      <h1 class="text-2xl font-semibold text-center text-[#164277] mb-1">Workload Notification</h1>
       <p class="text-xs text-gray-400 text-center mb-6">เข้าสู่ระบบหลังบ้านสำหรับจัดการแจ้งเตือนงาน</p>
       <form id="loginForm" class="space-y-4">
         <div>
           <label class="block text-sm font-medium mb-1">อีเมลแอดมิน</label>
-          <input type="email" id="loginEmail" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+          <input type="email" id="loginEmail" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#164277] outline-none">
         </div>
         <div>
           <label class="block text-sm font-medium mb-1">รหัสผ่าน</label>
-          <input type="password" id="loginPassword" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+          <input type="password" id="loginPassword" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#164277] outline-none">
         </div>
-        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition">
+        <button type="submit" class="w-full bg-[#164277] hover:bg-[#10325b] text-white font-medium py-2.5 rounded-lg transition">
           เข้าสู่ระบบ
         </button>
       </form>
@@ -39,7 +39,7 @@
     <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
       <div>
         <h1 class="text-2xl font-semibold text-gray-900">ระบบจัดการงาน & แจ้งเตือน LINE</h1>
-        <p class="text-sm text-gray-500">แจ้งเตือนทันทีเมื่อบันทึก + เช็กอัตโนมัติทุก 1 นาที (เริ่มงาน / ก่อน 3 วัน / ก่อน 3 ชม.)</p>
+        <p class="text-sm text-gray-500">แจ้งเตือนอัตโนมัติ 2 ช่วง (ก่อนหมดเขต 3 วัน / ก่อนหมดเขต 3 ชั่วโมง) + ส่งแบบแมนนวลได้ทันที</p>
       </div>
       <button id="logoutBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm">
         ออกจากระบบ
@@ -54,12 +54,12 @@
       <div class="lg:col-span-5 space-y-6">
 
         <div class="bg-white p-6 rounded-2xl shadow-sm">
-          <h2 id="formTitle" class="text-lg font-semibold text-indigo-600 mb-4">+ เพิ่มรายการงานใหม่</h2>
+          <h2 id="formTitle" class="text-lg font-semibold text-[#164277] mb-4">+ เพิ่มรายการงานใหม่</h2>
 
-          <div class="mb-4 p-3 bg-indigo-50/60 rounded-xl border border-indigo-100">
+          <div class="mb-4 p-3 bg-blue-50/70 rounded-xl border border-blue-100">
             <div class="flex justify-between items-center mb-1.5">
-              <span class="text-xs font-medium text-indigo-900">เลือกวิชาด่วน (คลิกเพื่อกรอกอัตโนมัติ):</span>
-              <button type="button" id="savePresetBtn" class="text-xs text-indigo-600 font-medium hover:underline">+ จำวิชานี้ไว้</button>
+              <span class="text-xs font-medium text-[#164277]">เลือกวิชาด่วน (คลิกเพื่อกรอกอัตโนมัติ):</span>
+              <button type="button" id="savePresetBtn" class="text-xs text-[#164277] font-medium hover:underline">+ จำวิชานี้ไว้</button>
             </div>
             <div id="coursePresets" class="flex flex-wrap gap-1.5">
               <span class="text-xs text-gray-400">ยังไม่มีวิชาที่บันทึกไว้</span>
@@ -148,7 +148,7 @@
             </div>
 
             <div class="pt-2 flex gap-2">
-              <button type="submit" id="submitBtn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg text-sm transition">
+              <button type="submit" id="submitBtn" class="flex-1 bg-[#164277] hover:bg-[#10325b] text-white font-medium py-2.5 rounded-lg text-sm transition">
                 บันทึกข้อมูลงาน
               </button>
               <button type="button" id="cancelEditBtn" class="hidden bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2.5 rounded-lg text-sm">
@@ -176,13 +176,42 @@
 
       </div>
 
-      <!-- คอลัมน์ขวา: รายการงานทั้งหมด -->
+      <!-- คอลัมน์ขวา: รายการงานทั้งหมดพร้อม 4 แท็บ -->
       <div class="lg:col-span-7">
         <div class="bg-white p-6 rounded-2xl shadow-sm">
           <div class="flex justify-between items-center mb-4">
             <h2 class="text-lg font-semibold text-gray-800">รายการงานในระบบ (อัปเดตสด)</h2>
             <span id="taskCount" class="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full">0 รายการ</span>
           </div>
+
+          <!-- แถบเลือก 4 แท็บ -->
+          <div id="taskTabs" class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+            <button type="button" data-tab="active_all" class="tab-btn text-left px-3.5 py-2.5 rounded-xl text-xs font-medium transition border bg-[#164277] text-white border-[#164277]">
+              <div class="flex justify-between items-center gap-2">
+                <span>งานทั้งหมดที่ยังคงส่งการแจ้งเตือนอยู่</span>
+                <span id="count_active_all" class="px-2 py-0.5 rounded-full text-[11px] bg-white/20 text-white">0</span>
+              </div>
+            </button>
+            <button type="button" data-tab="pending_3days" class="tab-btn text-left px-3.5 py-2.5 rounded-xl text-xs font-medium transition border bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100">
+              <div class="flex justify-between items-center gap-2">
+                <span>งานที่ส่งการแจ้งเตือน ก่อน 3 วันอยู่</span>
+                <span id="count_pending_3days" class="px-2 py-0.5 rounded-full text-[11px] bg-gray-200 text-gray-700">0</span>
+              </div>
+            </button>
+            <button type="button" data-tab="pending_3hours" class="tab-btn text-left px-3.5 py-2.5 rounded-xl text-xs font-medium transition border bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100">
+              <div class="flex justify-between items-center gap-2">
+                <span>งานที่ส่งการแจ้งเตือน ก่อน 3 ชั่วโมงอยู่</span>
+                <span id="count_pending_3hours" class="px-2 py-0.5 rounded-full text-[11px] bg-gray-200 text-gray-700">0</span>
+              </div>
+            </button>
+            <button type="button" data-tab="completed_expired" class="tab-btn text-left px-3.5 py-2.5 rounded-xl text-xs font-medium transition border bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100">
+              <div class="flex justify-between items-center gap-2">
+                <span>งานที่หมดเขตและส่งการแจ้งเตือนหมดแล้ว</span>
+                <span id="count_completed_expired" class="px-2 py-0.5 rounded-full text-[11px] bg-gray-200 text-gray-700">0</span>
+              </div>
+            </button>
+          </div>
+
           <div id="taskList" class="space-y-3">
             <p class="text-sm text-gray-400">กำลังโหลดข้อมูล...</p>
           </div>
@@ -213,6 +242,8 @@
     const db = getFirestore(app);
 
     let allGroups = [];
+    let allTasksCache = [];
+    let currentTab = "active_all";
     let unsubscribeTasks = null;
     const todayStr = new Date().toLocaleDateString('en-CA');
     document.getElementById('startDate').value = todayStr;
@@ -231,7 +262,6 @@
       banner.classList.remove('hidden');
     }
 
-    // สะกิดและอ่านผลลัพธ์จริงจาก Google Apps Script
     async function callAppsScript(payload) {
       showBanner("loading", "กำลังตรวจสอบเงื่อนไขและส่งแจ้งเตือนเข้า LINE...");
       try {
@@ -282,6 +312,29 @@
     });
 
     document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
+
+    // จัดการการสลับ 4 แท็บ
+    document.querySelectorAll('.tab-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        currentTab = btn.dataset.tab;
+        updateTabStyles();
+        renderFilteredTasks();
+      });
+    });
+
+    function updateTabStyles() {
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        const isSelected = btn.dataset.tab === currentTab;
+        const badge = btn.querySelector('span:last-child');
+        if (isSelected) {
+          btn.className = "tab-btn text-left px-3.5 py-2.5 rounded-xl text-xs font-medium transition border bg-[#164277] text-white border-[#164277]";
+          if (badge) badge.className = "px-2 py-0.5 rounded-full text-[11px] bg-white/20 text-white";
+        } else {
+          btn.className = "tab-btn text-left px-3.5 py-2.5 rounded-xl text-xs font-medium transition border bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100";
+          if (badge) badge.className = "px-2 py-0.5 rounded-full text-[11px] bg-gray-200 text-gray-700";
+        }
+      });
+    }
 
     // จัดการกลุ่ม LINE
     document.getElementById('groupForm').addEventListener('submit', async (e) => {
@@ -367,7 +420,7 @@
         const c = docSnap.data();
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'text-xs bg-white hover:bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded-md border border-indigo-200 transition';
+        btn.className = 'text-xs bg-white hover:bg-blue-100 text-[#164277] px-2.5 py-1 rounded-md border border-blue-200 transition';
         btn.textContent = `${c.code} ${c.name}`;
         btn.onclick = () => {
           document.getElementById('courseCode').value = c.code;
@@ -409,7 +462,6 @@
       if (editId) {
         await updateDoc(doc(db, "tasks", editId), {
           ...taskData,
-          notified_start: false,
           notified_3days: false,
           notified_due: false
         });
@@ -417,7 +469,6 @@
       } else {
         await addDoc(collection(db, "tasks"), {
           ...taskData,
-          notified_start: false,
           notified_3days: false,
           notified_due: false,
           createdAt: serverTimestamp()
@@ -430,103 +481,158 @@
       await callAppsScript({ action: "instant_check" });
     });
 
+    function toBangkokTimestamp(dateStr, timeStr) {
+      let t = (timeStr || "23:59:00").trim();
+      if (t.length === 5) t += ":00";
+      return Date.parse(`${dateStr}T${t}+07:00`);
+    }
+
+    function classifyTask(t) {
+      const nowMs = Date.now();
+      const dueMs = toBangkokTimestamp(t.dueDate, t.dueTime || "23:59");
+      const isExpired = dueMs <= nowMs;
+      const isCancelled = t.status === "Cancelled";
+      const isAllSent = Boolean(t.notified_due);
+      const isStillActive = !isExpired && !isCancelled && !isAllSent;
+
+      return {
+        active_all: isStillActive,
+        pending_3days: isStillActive && !t.notified_3days,
+        pending_3hours: isStillActive && Boolean(t.notified_3days) && !t.notified_due,
+        completed_expired: !isStillActive
+      };
+    }
+
     function listenTasksRealtime() {
-      const listEl = document.getElementById('taskList');
-      const countEl = document.getElementById('taskCount');
       const q = query(collection(db, "tasks"), orderBy("dueDate", "asc"));
 
       unsubscribeTasks = onSnapshot(q, (snap) => {
-        countEl.textContent = `${snap.size} รายการ`;
-        listEl.innerHTML = '';
-
-        if (snap.empty) {
-          listEl.innerHTML = '<p class="text-sm text-gray-400">ยังไม่มีรายการงานในระบบ</p>';
-          return;
-        }
-
+        allTasksCache = [];
         snap.forEach((docSnap) => {
-          const t = docSnap.data();
-          const id = docSnap.id;
-          const startTimeStr = t.startTime || '08:00';
-          const dueTimeStr = t.dueTime || '23:59';
-          const groupsBadge = (t.targetGroupNames && t.targetGroupNames.length > 0)
-            ? t.targetGroupNames.map(name => `<span class="text-[11px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">${name}</span>`).join(' ')
-            : '<span class="text-[11px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">ยังไม่ระบุกลุ่ม</span>';
-
-          const card = document.createElement('div');
-          card.className = 'border rounded-xl p-4 hover:border-indigo-300 transition bg-gray-50';
-          card.innerHTML = `
-            <div class="flex justify-between items-start gap-3">
-              <div class="space-y-1">
-                <div class="flex items-center gap-1.5 flex-wrap">
-                  <span class="text-xs font-semibold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded">${t.courseCode}</span>
-                  <span class="text-xs font-medium text-gray-600">${t.courseName}</span>
-                  <span class="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded">${t.taskType}</span>
-                  ${t.status === 'Cancelled' ? '<span class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded">ยกเลิกแล้ว</span>' : ''}
-                </div>
-                <h3 class="font-semibold text-gray-900">${t.taskTitle}</h3>
-                <p class="text-sm text-gray-600">${t.description || '-'}</p>
-                ${t.link ? `<a href="${t.link}" target="_blank" class="inline-block text-xs text-indigo-600 hover:underline break-all">${t.link}</a>` : ''}
-                <div class="pt-1 flex flex-wrap gap-1 items-center">
-                  <span class="text-[11px] text-gray-500">กลุ่มเป้าหมาย:</span> ${groupsBadge}
-                </div>
-                <div class="text-xs text-gray-500 pt-1 flex flex-wrap gap-3">
-                  <span>เริ่ม: <b>${t.startDate} (${startTimeStr} น.)</b></span>
-                  <span class="text-red-600">ส่ง: <b>${t.dueDate} (${dueTimeStr} น.)</b></span>
-                </div>
-                <div class="text-[11px] text-gray-400 flex gap-2">
-                  <span class="${t.notified_start ? 'text-emerald-600 font-medium' : ''}">เริ่มงาน: ${t.notified_start ? 'ส่งแล้ว' : 'รอส่ง'}</span> •
-                  <span class="${t.notified_3days ? 'text-emerald-600 font-medium' : ''}">ก่อน 3 วัน: ${t.notified_3days ? 'ส่งแล้ว' : 'รอส่ง'}</span> •
-                  <span class="${t.notified_due ? 'text-emerald-600 font-medium' : ''}">ก่อน 3 ชม.: ${t.notified_due ? 'ส่งแล้ว' : 'รอส่ง'}</span>
-                </div>
-              </div>
-              <div class="flex flex-col gap-1.5 shrink-0">
-                <button class="test-btn text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-800 px-3 py-1.5 rounded-lg font-medium">ส่งทันที</button>
-                <button class="edit-btn text-xs bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-1.5 rounded-lg">แก้ไข</button>
-                <button class="del-btn text-xs bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 rounded-lg">ลบ</button>
-              </div>
-            </div>
-          `;
-
-          card.querySelector('.test-btn').onclick = () => {
-            callAppsScript({ action: "force_send", taskId: id });
-          };
-
-          card.querySelector('.edit-btn').onclick = () => {
-            document.getElementById('editDocId').value = id;
-            document.getElementById('formTitle').textContent = 'แก้ไขรายการงาน';
-            document.getElementById('submitBtn').textContent = 'อัปเดตข้อมูล';
-            document.getElementById('cancelEditBtn').classList.remove('hidden');
-            document.getElementById('courseCode').value = t.courseCode;
-            document.getElementById('courseName').value = t.courseName;
-            document.getElementById('taskType').value = t.taskType;
-            document.getElementById('taskStatus').value = t.status;
-            document.getElementById('taskTitle').value = t.taskTitle;
-            document.getElementById('description').value = t.description;
-            document.getElementById('link').value = t.link;
-            document.getElementById('startDate').value = t.startDate;
-            document.getElementById('startTime').value = startTimeStr;
-            document.getElementById('dueDate').value = t.dueDate;
-            document.getElementById('dueTime').value = dueTimeStr;
-
-            const savedIds = t.targetGroupIds || [];
-            document.querySelectorAll('input[name="targetGroups"]').forEach(box => {
-              box.checked = savedIds.includes(box.value);
-            });
-
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          };
-
-          card.querySelector('.del-btn').onclick = async () => {
-            if (confirm(`ยืนยันการลบงาน "${t.taskTitle}" หรือไม่?`)) {
-              await deleteDoc(doc(db, "tasks", id));
-            }
-          };
-
-          listEl.appendChild(card);
+          allTasksCache.push({ id: docSnap.id, ...docSnap.data() });
         });
+        renderFilteredTasks();
       });
     }
+
+    function renderFilteredTasks() {
+      const listEl = document.getElementById('taskList');
+      const countEl = document.getElementById('taskCount');
+
+      let counts = {
+        active_all: 0,
+        pending_3days: 0,
+        pending_3hours: 0,
+        completed_expired: 0
+      };
+
+      const filtered = allTasksCache.filter((t) => {
+        const flags = classifyTask(t);
+        if (flags.active_all) counts.active_all++;
+        if (flags.pending_3days) counts.pending_3days++;
+        if (flags.pending_3hours) counts.pending_3hours++;
+        if (flags.completed_expired) counts.completed_expired++;
+        return flags[currentTab];
+      });
+
+      document.getElementById('count_active_all').textContent = counts.active_all;
+      document.getElementById('count_pending_3days').textContent = counts.pending_3days;
+      document.getElementById('count_pending_3hours').textContent = counts.pending_3hours;
+      document.getElementById('count_completed_expired').textContent = counts.completed_expired;
+      countEl.textContent = `แสดง ${filtered.length} / ทั้งหมด ${allTasksCache.length} รายการ`;
+
+      listEl.innerHTML = '';
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = '<p class="text-sm text-gray-400 py-6 text-center">ไม่มีรายการงานในแท็บนี้</p>';
+        return;
+      }
+
+      filtered.forEach((t) => {
+        const id = t.id;
+        const startTimeStr = t.startTime || '08:00';
+        const dueTimeStr = t.dueTime || '23:59';
+        const groupsBadge = (t.targetGroupNames && t.targetGroupNames.length > 0)
+          ? t.targetGroupNames.map(name => `<span class="text-[11px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">${name}</span>`).join(' ')
+          : '<span class="text-[11px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">ยังไม่ระบุกลุ่ม</span>';
+
+        const card = document.createElement('div');
+        card.className = 'border rounded-xl p-4 hover:border-[#164277] transition bg-gray-50';
+        card.innerHTML = `
+          <div class="flex justify-between items-start gap-3">
+            <div class="space-y-1">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="text-xs font-semibold bg-blue-100 text-[#164277] px-2 py-0.5 rounded">${t.courseCode}</span>
+                <span class="text-xs font-medium text-gray-600">${t.courseName}</span>
+                <span class="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded">${t.taskType}</span>
+                ${t.status === 'Cancelled' ? '<span class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded">ยกเลิกแล้ว</span>' : ''}
+              </div>
+              <h3 class="font-semibold text-gray-900">${t.taskTitle}</h3>
+              <p class="text-sm text-gray-600">${t.description || '-'}</p>
+              ${t.link ? `<a href="${t.link}" target="_blank" class="inline-block text-xs text-[#164277] hover:underline break-all">${t.link}</a>` : ''}
+              <div class="pt-1 flex flex-wrap gap-1 items-center">
+                <span class="text-[11px] text-gray-500">กลุ่มเป้าหมาย:</span> ${groupsBadge}
+              </div>
+              <div class="text-xs text-gray-500 pt-1 flex flex-wrap gap-3">
+                <span>เริ่ม: <b>${t.startDate} (${startTimeStr} น.)</b></span>
+                <span class="text-red-600">ส่ง: <b>${t.dueDate} (${dueTimeStr} น.)</b></span>
+              </div>
+              <div class="text-[11px] text-gray-400 flex gap-2">
+                <span class="${t.notified_3days ? 'text-emerald-600 font-medium' : ''}">ก่อน 3 วัน: ${t.notified_3days ? 'ส่งแล้ว' : 'รอส่ง'}</span> •
+                <span class="${t.notified_due ? 'text-emerald-600 font-medium' : ''}">ก่อน 3 ชม.: ${t.notified_due ? 'ส่งแล้ว' : 'รอส่ง'}</span>
+              </div>
+            </div>
+            <div class="flex flex-col gap-1.5 shrink-0">
+              <button class="test-btn text-xs bg-[#164277] hover:bg-[#10325b] text-white px-3 py-1.5 rounded-lg font-medium">ส่งทันที</button>
+              <button class="edit-btn text-xs bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-1.5 rounded-lg">แก้ไข</button>
+              <button class="del-btn text-xs bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 rounded-lg">ลบ</button>
+            </div>
+          </div>
+        `;
+
+        card.querySelector('.test-btn').onclick = () => {
+          callAppsScript({ action: "force_send", taskId: id });
+        };
+
+        card.querySelector('.edit-btn').onclick = () => {
+          document.getElementById('editDocId').value = id;
+          document.getElementById('formTitle').textContent = 'แก้ไขรายการงาน';
+          document.getElementById('submitBtn').textContent = 'อัปเดตข้อมูล';
+          document.getElementById('cancelEditBtn').classList.remove('hidden');
+          document.getElementById('courseCode').value = t.courseCode;
+          document.getElementById('courseName').value = t.courseName;
+          document.getElementById('taskType').value = t.taskType;
+          document.getElementById('taskStatus').value = t.status;
+          document.getElementById('taskTitle').value = t.taskTitle;
+          document.getElementById('description').value = t.description;
+          document.getElementById('link').value = t.link;
+          document.getElementById('startDate').value = t.startDate;
+          document.getElementById('startTime').value = startTimeStr;
+          document.getElementById('dueDate').value = t.dueDate;
+          document.getElementById('dueTime').value = dueTimeStr;
+
+          const savedIds = t.targetGroupIds || [];
+          document.querySelectorAll('input[name="targetGroups"]').forEach(box => {
+            box.checked = savedIds.includes(box.value);
+          });
+
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        card.querySelector('.del-btn').onclick = async () => {
+          if (confirm(`ยืนยันการลบงาน "${t.taskTitle}" หรือไม่?`)) {
+            await deleteDoc(doc(db, "tasks", id));
+          }
+        };
+
+        listEl.appendChild(card);
+      });
+    }
+
+    // อัปเดตการจัดกลุ่มแท็บอัตโนมัติทุก 15 วินาที กรณีมีงานหมดเขตระหว่างเปิดหน้าเว็บ
+    setInterval(() => {
+      if (allTasksCache.length > 0) renderFilteredTasks();
+    }, 15000);
 
     function resetForm() {
       document.getElementById('editDocId').value = '';
