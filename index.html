@@ -255,9 +255,71 @@
     </div>
   </div>
 
+  <!-- ป๊อปอัพยืนยันก่อนกดส่งทันที -->
+  <div id="confirmSendModal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-[1px] flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 border border-gray-100">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-full bg-blue-100 text-[#164277] flex items-center justify-center shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-base font-semibold text-gray-900">ยืนยันการส่งแจ้งเตือนทันที</h3>
+          <p class="text-xs text-gray-500">ระบบจะส่งการ์ดภาระงานเข้ากลุ่มเป้าหมายทันที</p>
+        </div>
+      </div>
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 mb-5 space-y-1 text-xs">
+        <div class="text-[#164277] font-semibold" id="confirmSendCourse"></div>
+        <div class="text-gray-900 font-medium text-sm" id="confirmSendTitle"></div>
+        <div class="text-gray-500 pt-1">กลุ่มเป้าหมาย: <span id="confirmSendGroups" class="text-emerald-700 font-medium"></span></div>
+      </div>
+      <div class="flex justify-end gap-2">
+        <button type="button" id="cancelConfirmSendBtn" class="px-4 py-2 rounded-lg text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium">
+          ยกเลิก
+        </button>
+        <button type="button" id="executeConfirmSendBtn" class="px-4 py-2 rounded-lg text-sm bg-[#164277] hover:bg-[#10325b] text-white font-medium">
+          ยืนยันส่งแจ้งเตือน
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ป๊อปอัพยืนยันรหัสผ่านแอดมินก่อนเพิ่มหรือลบแชต LINE -->
+  <div id="passwordAuthModal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-[1px] flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 border border-gray-100">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        </div>
+        <div>
+          <h3 id="passwordModalTitle" class="text-base font-semibold text-gray-900">ยืนยันรหัสผ่านแอดมิน</h3>
+          <p id="passwordModalDesc" class="text-xs text-gray-500">กรุณากรอกรหัสผ่านเพื่อดำเนินการต่อ</p>
+        </div>
+      </div>
+      <form id="passwordVerifyForm" class="space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">รหัสผ่านแอดมิน *</label>
+          <input type="password" id="verifyAdminPasswordInput" required placeholder="กรอกรหัสผ่านที่ใช้เข้าสู่ระบบ" class="w-full px-3.5 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#164277] outline-none">
+          <p id="verifyPasswordError" class="text-red-500 text-xs mt-1.5 hidden"></p>
+        </div>
+        <div class="flex justify-end gap-2 pt-1">
+          <button type="button" id="cancelPasswordModalBtn" class="px-4 py-2 rounded-lg text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium">
+            ยกเลิก
+          </button>
+          <button type="submit" id="submitPasswordModalBtn" class="px-4 py-2 rounded-lg text-sm bg-[#164277] hover:bg-[#10325b] text-white font-medium">
+            ยืนยัน
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
     import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
     const GAS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxl8sLK6iLHqQt5yEm0lUYFUbSRBMeYwjsQZY6AK2PrEaOhdTA-lokWWvNkAWzfic6ymQ/exec";
@@ -281,6 +343,9 @@
     let currentTab = "active_all";
     let currentCourseSubTab = "ALL";
     let unsubscribeTasks = null;
+    let pendingSendTaskId = null;
+    let pendingPasswordCallback = null;
+
     const todayStr = new Date().toLocaleDateString('en-CA');
     document.getElementById('startDate').value = todayStr;
 
@@ -319,6 +384,88 @@
         showBanner("error", "เชื่อมต่อ Apps Script ไม่สำเร็จ: ตรวจสอบว่ากด Deploy -> New version แล้วหรือยัง");
       }
     }
+
+    // ควบคุมป๊อปอัพยืนยันก่อนส่งทันที
+    function openConfirmSendModal(task) {
+      pendingSendTaskId = task.id;
+      document.getElementById('confirmSendCourse').textContent = `${task.courseCode || ''} ${task.courseName || ''}`.trim();
+      document.getElementById('confirmSendTitle').textContent = task.taskTitle || '-';
+      document.getElementById('confirmSendGroups').textContent = (task.targetGroupNames && task.targetGroupNames.length > 0)
+        ? task.targetGroupNames.join(', ')
+        : 'ยังไม่ระบุกลุ่ม';
+      document.getElementById('confirmSendModal').classList.remove('hidden');
+    }
+
+    function closeConfirmSendModal() {
+      pendingSendTaskId = null;
+      document.getElementById('confirmSendModal').classList.add('hidden');
+    }
+
+    document.getElementById('cancelConfirmSendBtn').addEventListener('click', closeConfirmSendModal);
+    document.getElementById('executeConfirmSendBtn').addEventListener('click', async () => {
+      const targetId = pendingSendTaskId;
+      closeConfirmSendModal();
+      if (targetId) {
+        await callAppsScript({ action: "force_send", taskId: targetId });
+      }
+    });
+
+    // ควบคุมป๊อปอัพตรวจสอบรหัสผ่านแอดมินก่อนเพิ่ม/ลบแชต LINE
+    function openPasswordAuthModal(title, description, onSuccessCallback) {
+      pendingPasswordCallback = onSuccessCallback;
+      document.getElementById('passwordModalTitle').textContent = title;
+      document.getElementById('passwordModalDesc').textContent = description;
+      const inputEl = document.getElementById('verifyAdminPasswordInput');
+      const errEl = document.getElementById('verifyPasswordError');
+      inputEl.value = '';
+      errEl.classList.add('hidden');
+      errEl.textContent = '';
+      document.getElementById('passwordAuthModal').classList.remove('hidden');
+      setTimeout(() => inputEl.focus(), 50);
+    }
+
+    function closePasswordAuthModal() {
+      pendingPasswordCallback = null;
+      document.getElementById('verifyAdminPasswordInput').value = '';
+      document.getElementById('verifyPasswordError').classList.add('hidden');
+      document.getElementById('passwordAuthModal').classList.add('hidden');
+    }
+
+    document.getElementById('cancelPasswordModalBtn').addEventListener('click', closePasswordAuthModal);
+
+    document.getElementById('passwordVerifyForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const password = document.getElementById('verifyAdminPasswordInput').value;
+      const errEl = document.getElementById('verifyPasswordError');
+      const submitBtn = document.getElementById('submitPasswordModalBtn');
+
+      const user = auth.currentUser;
+      if (!user || !user.email) {
+        errEl.textContent = "ไม่พบข้อมูลผู้ใช้งานปัจจุบัน กรุณาออกจากระบบแล้วเข้าสู่ระบบใหม่";
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "กำลังตรวจสอบ...";
+      errEl.classList.add('hidden');
+
+      try {
+        const credential = EmailAuthProvider.credential(user.email, password);
+        await reauthenticateWithCredential(user, credential);
+        const callback = pendingPasswordCallback;
+        closePasswordAuthModal();
+        if (callback) {
+          await callback();
+        }
+      } catch (err) {
+        errEl.textContent = "รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง";
+        errEl.classList.remove('hidden');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "ยืนยัน";
+      }
+    });
 
     onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -378,17 +525,24 @@
       });
     }
 
-    // จัดการกลุ่ม LINE
-    document.getElementById('groupForm').addEventListener('submit', async (e) => {
+    // จัดการกลุ่ม LINE (ต้องยืนยันรหัสผ่านก่อนเพิ่มและก่อนลบ + เบลอ ID พร้อมปุ่มรูปดวงตา)
+    document.getElementById('groupForm').addEventListener('submit', (e) => {
       e.preventDefault();
       const name = document.getElementById('newGroupName').value.trim();
       const groupId = document.getElementById('newGroupId').value.trim();
       if (!/^[CRU][0-9a-f]{32}$/i.test(groupId)) {
         return alert("รูปแบบ ID ไม่ถูกต้อง (ต้องขึ้นต้นด้วย C หรือ U และมีความยาว 33 ตัวอักษร)");
       }
-      await addDoc(collection(db, "groups"), { name, groupId });
-      document.getElementById('groupForm').reset();
-      await loadGroups();
+      openPasswordAuthModal(
+        "ยืนยันรหัสผ่านเพื่อเพิ่มรายชื่อแชต",
+        `กรุณากรอกรหัสผ่านแอดมินเพื่อเพิ่ม "${name}" เข้าสู่ระบบ`,
+        async () => {
+          await addDoc(collection(db, "groups"), { name, groupId });
+          document.getElementById('groupForm').reset();
+          await loadGroups();
+          showBanner("success", `เพิ่มรายชื่อ "${name}" เรียบร้อยแล้ว`);
+        }
+      );
     });
 
     async function loadGroups() {
@@ -407,6 +561,9 @@
         return;
       }
 
+      const eyeOpenSvg = `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>`;
+      const eyeOffSvg = `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>`;
+
       allGroups.forEach((g) => {
         const label = document.createElement('label');
         label.className = 'flex items-center gap-2 text-sm text-gray-800 cursor-pointer bg-white px-2.5 py-1.5 rounded-lg border border-emerald-100';
@@ -417,19 +574,45 @@
         checkboxContainer.appendChild(label);
 
         const row = document.createElement('div');
-        row.className = 'flex justify-between items-center bg-gray-50 px-3 py-2 rounded-lg border';
+        row.className = 'flex justify-between items-center bg-gray-50 px-3 py-2 rounded-lg border gap-2';
         row.innerHTML = `
-          <div class="truncate pr-2">
+          <div class="min-w-0 flex-1">
             <div class="font-medium text-gray-800">${g.name}</div>
-            <div class="text-[11px] text-gray-400 font-mono truncate">${g.groupId}</div>
+            <div class="flex items-center gap-1.5 mt-0.5">
+              <div class="chat-id-text text-[11px] text-gray-500 font-mono truncate blur-sm select-none transition-all duration-150">${g.groupId}</div>
+              <button type="button" class="toggle-id-btn text-gray-400 hover:text-[#164277] p-0.5 rounded shrink-0" title="แสดง/ซ่อน ID แชต">
+                ${eyeOpenSvg}
+              </button>
+            </div>
           </div>
           <button type="button" class="del-group-btn text-xs text-red-500 hover:underline shrink-0">ลบ</button>
         `;
-        row.querySelector('.del-group-btn').onclick = async () => {
-          if (confirm(`ลบ "${g.name}" ออกจากรายการหรือไม่?`)) {
-            await deleteDoc(doc(db, "groups", g.docId));
-            await loadGroups();
+
+        let isIdVisible = false;
+        const idTextEl = row.querySelector('.chat-id-text');
+        const toggleBtn = row.querySelector('.toggle-id-btn');
+
+        toggleBtn.onclick = () => {
+          isIdVisible = !isIdVisible;
+          if (isIdVisible) {
+            idTextEl.classList.remove('blur-sm', 'select-none');
+            toggleBtn.innerHTML = eyeOffSvg;
+          } else {
+            idTextEl.classList.add('blur-sm', 'select-none');
+            toggleBtn.innerHTML = eyeOpenSvg;
           }
+        };
+
+        row.querySelector('.del-group-btn').onclick = () => {
+          openPasswordAuthModal(
+            "ยืนยันรหัสผ่านเพื่อลบรายชื่อแชต",
+            `กรุณากรอกรหัสผ่านแอดมินเพื่อลบ "${g.name}" ออกจากรายการ`,
+            async () => {
+              await deleteDoc(doc(db, "groups", g.docId));
+              await loadGroups();
+              showBanner("success", `ลบรายชื่อ "${g.name}" เรียบร้อยแล้ว`);
+            }
+          );
         };
         savedList.appendChild(row);
       });
@@ -729,7 +912,7 @@
         `;
 
         card.querySelector('.test-btn').onclick = () => {
-          callAppsScript({ action: "force_send", taskId: id });
+          openConfirmSendModal(t);
         };
 
         card.querySelector('.edit-btn').onclick = () => {
