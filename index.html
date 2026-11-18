@@ -378,6 +378,7 @@
     let unsubscribeTasks = null;
     let pendingSendTaskId = null;
     let pendingPasswordCallback = null;
+    let editingExistingNotifiedHours = [];
 
     const todayStr = new Date().toLocaleDateString('en-CA');
     document.getElementById('startDate').value = todayStr;
@@ -447,7 +448,7 @@
           if (data.sentCount > 0) {
             showBanner("success", `ส่งแจ้งเตือนเข้า LINE สำเร็จแล้ว (${data.sentCount} รายการ)`);
           } else {
-            showBanner("success", "บันทึกสำเร็จ (ยังไม่ถึงรอบเวลาแจ้งเตือน ระบบจะส่งอัตโนมัติเมื่อถึงกำหนด)");
+            showBanner("success", "บันทึกสำเร็จ (ไม่มีการส่งซ้ำ ระบบจะแจ้งเตือนในรอบถัดไปตามกำหนด)");
           }
         } else {
           showBanner("error", "แจ้งเตือนขัดข้อง: " + (data.errors || []).join(" | "));
@@ -750,6 +751,8 @@
       }
 
       const notifyHoursBefore = Array.from(new Set(rawHours)).sort((a, b) => b - a);
+      const dueDateVal = document.getElementById('dueDate').value;
+      const dueTimeVal = document.getElementById('dueTime').value;
 
       const editId = document.getElementById('editDocId').value;
       const taskData = {
@@ -762,8 +765,8 @@
         link: rawLink,
         startDate: document.getElementById('startDate').value,
         startTime: document.getElementById('startTime').value,
-        dueDate: document.getElementById('dueDate').value,
-        dueTime: document.getElementById('dueTime').value,
+        dueDate: dueDateVal,
+        dueTime: dueTimeVal,
         notifyCount: notifyHoursBefore.length,
         notifyHoursBefore,
         targetGroupIds,
@@ -771,11 +774,23 @@
       };
 
       if (editId) {
+        // คงรอบที่เคยแจ้งเตือนไปแล้ว และทำเครื่องหมายรอบที่ถึงเวลาแล้ว ณ ตอนแก้ไข เพื่อไม่ให้แจ้งเตือนซ้ำและรอแจ้งเตือนในรอบถัดไป
+        const dueMs = toBangkokTimestamp(dueDateVal, dueTimeVal || "23:59");
+        const hoursUntilDue = (dueMs - Date.now()) / (60 * 60 * 1000);
+        const passedThresholdsOnEdit = notifyHoursBefore.filter((h) => hoursUntilDue <= h);
+        const preservedNotified = Array.from(
+          new Set([...editingExistingNotifiedHours, ...passedThresholdsOnEdit])
+        ).sort((a, b) => b - a);
+
+        const allDone = notifyHoursBefore.every((h) =>
+          preservedNotified.some((sentH) => Math.abs(sentH - h) < 0.0001)
+        );
+
         await updateDoc(doc(db, "tasks", editId), {
           ...taskData,
-          notifiedHours: [],
-          notified_3days: false,
-          notified_due: false
+          notifiedHours: preservedNotified,
+          notified_3days: preservedNotified.length > 0,
+          notified_due: allDone
         });
         resetForm();
       } else {
@@ -784,6 +799,7 @@
           notifiedHours: [],
           notified_3days: false,
           notified_due: false,
+          userStatuses: [],
           createdAt: serverTimestamp()
         });
         document.getElementById('taskTitle').value = '';
@@ -995,6 +1011,24 @@
           return `<span class="${isSent ? 'text-emerald-600 font-medium' : ''}">ก่อน ${h} ชม.: ${isSent ? 'ส่งแล้ว' : 'รอส่ง'}</span>`;
         }).join(' • ');
 
+        const userStatuses = Array.isArray(t.userStatuses) ? t.userStatuses : [];
+        const userStatusesHtml = userStatuses.length > 0
+          ? `<div class="pt-1.5 flex flex-wrap gap-1.5 items-center">
+              <span class="text-[11px] text-gray-500">สถานะผู้เรียน:</span>
+              ${userStatuses.map(u => {
+                const isDone = u.status === 'done';
+                const avatar = (u.pictureUrl && /^https:\/\//i.test(u.pictureUrl))
+                  ? u.pictureUrl
+                  : `https://ui-avatars.com/api/?name=${encodeURIComponent(u.displayName || 'U')}&background=164277&color=fff&size=64`;
+                return `<span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border ${isDone ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-slate-100 border-slate-200 text-slate-700'}">
+                  <img src="${avatar}" alt="" class="w-3.5 h-3.5 rounded-full object-cover">
+                  <span class="font-medium">${u.displayName || 'ผู้ใช้งาน'}</span>
+                  <span>(${isDone ? 'ทำแล้ว' : 'ไม่ได้ลงวิชานี้'})</span>
+                </span>`;
+              }).join('')}
+            </div>`
+          : '';
+
         const card = document.createElement('div');
         card.className = 'border rounded-xl p-4 hover:border-[#164277] transition bg-gray-50';
         card.innerHTML = `
@@ -1019,6 +1053,7 @@
               <div class="text-[11px] text-gray-400 flex flex-wrap gap-1.5">
                 <span class="text-gray-500">แจ้งเตือนก่อนหมด (${thresholds.length} ครั้ง):</span> ${scheduleBadgesHtml}
               </div>
+              ${userStatusesHtml}
             </div>
             <div class="flex flex-col gap-1.5 shrink-0">
               <button class="test-btn text-xs bg-[#164277] hover:bg-[#10325b] text-white px-3 py-1.5 rounded-lg font-medium">ส่งทันที</button>
@@ -1033,6 +1068,9 @@
         };
 
         card.querySelector('.edit-btn').onclick = () => {
+          const { thresholds, notified } = getTaskScheduleInfo(t);
+          editingExistingNotifiedHours = [...notified];
+
           document.getElementById('editDocId').value = id;
           document.getElementById('formTitle').textContent = 'แก้ไขรายการงาน';
           document.getElementById('submitBtn').textContent = 'อัปเดตข้อมูล';
@@ -1049,7 +1087,6 @@
           document.getElementById('dueDate').value = t.dueDate;
           document.getElementById('dueTime').value = dueTimeStr;
 
-          const { thresholds } = getTaskScheduleInfo(t);
           const countVal = Math.min(Math.max(thresholds.length, 1), 10);
           document.getElementById('notifyCount').value = String(countVal);
           renderNotifyHoursInputs(countVal, thresholds);
@@ -1078,6 +1115,7 @@
     }, 15000);
 
     function resetForm() {
+      editingExistingNotifiedHours = [];
       document.getElementById('editDocId').value = '';
       document.getElementById('formTitle').textContent = '+ เพิ่มรายการงานใหม่';
       document.getElementById('submitBtn').textContent = 'บันทึกข้อมูลงาน';
