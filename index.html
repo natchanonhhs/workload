@@ -46,6 +46,9 @@
       </button>
     </div>
 
+    <!-- แถบแจ้งสถานะการเชื่อมต่อ LINE -->
+    <div id="statusBanner" class="hidden mb-6 p-4 rounded-xl text-sm font-medium border"></div>
+
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
       <!-- คอลัมน์ซ้าย: ฟอร์มเพิ่มงาน + ตั้งค่ากลุ่ม LINE -->
       <div class="lg:col-span-5 space-y-6">
@@ -193,7 +196,6 @@
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
     import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
-    // นำ Web app URL ของ Google Apps Script มาวางแทนที่ตรงนี้
     const GAS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxl8sLK6iLHqQt5yEm0lUYFUbSRBMeYwjsQZY6AK2PrEaOhdTA-lokWWvNkAWzfic6ymQ/exec";
 
     const firebaseConfig = {
@@ -215,15 +217,41 @@
     const todayStr = new Date().toLocaleDateString('en-CA');
     document.getElementById('startDate').value = todayStr;
 
-    // สะกิดให้ Apps Script ตรวจสอบและส่งเข้า LINE ทันทีใน 1 วินาที
-    function triggerInstantCheck() {
-      if (!GAS_WEBHOOK_URL.startsWith("https://")) return;
-      fetch(GAS_WEBHOOK_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "text/plain" },
-        body: JSON.stringify({ action: "instant_check" })
-      }).catch(() => {});
+    function showBanner(type, message) {
+      const banner = document.getElementById('statusBanner');
+      banner.className = "mb-6 p-4 rounded-xl text-sm font-medium border ";
+      if (type === "loading") {
+        banner.className += "bg-blue-50 text-blue-800 border-blue-200";
+      } else if (type === "success") {
+        banner.className += "bg-emerald-50 text-emerald-800 border-emerald-200";
+      } else {
+        banner.className += "bg-red-50 text-red-800 border-red-200";
+      }
+      banner.textContent = message;
+      banner.classList.remove('hidden');
+    }
+
+    // สะกิดและอ่านผลลัพธ์จริงจาก Google Apps Script
+    async function callAppsScript(payload) {
+      showBanner("loading", "กำลังตรวจสอบเงื่อนไขและส่งแจ้งเตือนเข้า LINE...");
+      try {
+        const res = await fetch(GAS_WEBHOOK_URL, {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.ok) {
+          if (data.sentCount > 0) {
+            showBanner("success", `ส่งแจ้งเตือนเข้า LINE สำเร็จแล้ว (${data.sentCount} รายการ)`);
+          } else {
+            showBanner("success", "บันทึกสำเร็จ (ยังไม่ถึงรอบเวลาแจ้งเตือน ระบบจะส่งอัตโนมัติเมื่อถึงกำหนด)");
+          }
+        } else {
+          showBanner("error", "แจ้งเตือนขัดข้อง: " + (data.errors || []).join(" | "));
+        }
+      } catch (err) {
+        showBanner("error", "เชื่อมต่อ Apps Script ไม่สำเร็จ: ตรวจสอบว่ากด Deploy -> New version แล้วหรือยัง");
+      }
     }
 
     onAuthStateChanged(auth, async (user) => {
@@ -399,8 +427,7 @@
         document.getElementById('link').value = '';
       }
 
-      // สะกิดแจ้งเตือนทันทีภายใน 1 วินาที
-      triggerInstantCheck();
+      await callAppsScript({ action: "instant_check" });
     });
 
     function listenTasksRealtime() {
@@ -454,11 +481,16 @@
                 </div>
               </div>
               <div class="flex flex-col gap-1.5 shrink-0">
+                <button class="test-btn text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-800 px-3 py-1.5 rounded-lg font-medium">ส่งทันที</button>
                 <button class="edit-btn text-xs bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-1.5 rounded-lg">แก้ไข</button>
                 <button class="del-btn text-xs bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 rounded-lg">ลบ</button>
               </div>
             </div>
           `;
+
+          card.querySelector('.test-btn').onclick = () => {
+            callAppsScript({ action: "force_send", taskId: id });
+          };
 
           card.querySelector('.edit-btn').onclick = () => {
             document.getElementById('editDocId').value = id;
