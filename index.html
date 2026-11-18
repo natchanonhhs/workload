@@ -39,7 +39,7 @@
     <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
       <div>
         <h1 class="text-2xl font-semibold text-gray-900">ระบบจัดการงาน & แจ้งเตือน LINE</h1>
-        <p class="text-sm text-gray-500">กำหนดจำนวนครั้งและชั่วโมงแจ้งเตือนล่วงหน้าได้อิสระ + ส่งแบบแมนนวลได้ทันที</p>
+        <p class="text-sm text-gray-500">แจ้งเตือนหลักก่อนหมดเขต 2 ครั้ง (ก่อน 3 วัน และก่อน 3 ชม.) หรือปรับตั้งเองได้ + ส่งแบบแมนนวลได้ทันที</p>
       </div>
       <button id="logoutBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm">
         ออกจากระบบ
@@ -89,6 +89,9 @@
                   <option value="Lab / ปฏิบัติการ">Lab / ปฏิบัติการ</option>
                   <option value="Quiz / สอบ">Quiz / สอบ</option>
                   <option value="โปรเจกต์">โปรเจกต์</option>
+                  <option value="ใบงาน">ใบงาน</option>
+                  <option value="ภาพ">ภาพ</option>
+                  <option value="วีดิโอ">วีดิโอ</option>
                   <option value="เช็คชื่อ">เช็คชื่อ</option>
                   <option value="เรียน">เรียน</option>
                   <option value="เรียนชดเชย">เรียนชดเชย</option>
@@ -140,13 +143,13 @@
               </div>
             </div>
 
-            <!-- ส่วนตั้งค่าจำนวนครั้งและชั่วโมงที่ต้องการให้แจ้งเตือนล่วงหน้า -->
+            <!-- ส่วนตั้งค่าจำนวนครั้งและชั่วโมงที่ต้องการให้แจ้งเตือนก่อนหมดเขต -->
             <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
               <div class="flex justify-between items-center gap-2">
-                <label for="notifyCount" class="text-xs font-semibold text-[#164277]">จำนวนครั้งที่แจ้งเตือนอัตโนมัติ</label>
+                <label for="notifyCount" class="text-xs font-semibold text-[#164277]">แจ้งเตือนก่อนหมดเขต (จำนวนครั้ง)</label>
                 <select id="notifyCount" class="px-2.5 py-1 border border-slate-300 rounded-lg text-xs bg-white font-medium text-[#164277] outline-none">
                   <option value="1">1 ครั้ง</option>
-                  <option value="2" selected>2 ครั้ง</option>
+                  <option value="2" selected>2 ครั้ง (หลัก)</option>
                   <option value="3">3 ครั้ง</option>
                   <option value="4">4 ครั้ง</option>
                   <option value="5">5 ครั้ง</option>
@@ -158,7 +161,7 @@
                 </select>
               </div>
               <div id="notifyHoursContainer" class="space-y-1.5"></div>
-              <p class="text-[11px] text-gray-500">ระบุจำนวนชั่วโมงก่อนถึงเวลาสิ้นสุด (เช่น 72 = 3 วัน, 24 = 1 วัน, 0.5 = 30 นาที)</p>
+              <p class="text-[11px] text-gray-500">ค่าหลัก 2 ครั้ง: ก่อนหมดเขต 72 ชม. (3 วัน) และ 3 ชม. (ปรับเปลี่ยนได้อิสระ)</p>
             </div>
 
             <div class="p-3 bg-emerald-50/70 rounded-xl border border-emerald-200">
@@ -259,6 +262,9 @@
                   <option value="Lab / ปฏิบัติการ">Lab / ปฏิบัติการ</option>
                   <option value="Quiz / สอบ">Quiz / สอบ</option>
                   <option value="โปรเจกต์">โปรเจกต์</option>
+                  <option value="ใบงาน">ใบงาน</option>
+                  <option value="ภาพ">ภาพ</option>
+                  <option value="วีดิโอ">วีดิโอ</option>
                   <option value="เช็คชื่อ">เช็คชื่อ</option>
                   <option value="เรียน">เรียน</option>
                   <option value="เรียนชดเชย">เรียนชดเชย</option>
@@ -376,8 +382,8 @@
     const todayStr = new Date().toLocaleDateString('en-CA');
     document.getElementById('startDate').value = todayStr;
 
-    // สร้างช่องกรอกชั่วโมงล่วงหน้าตามจำนวนครั้งที่เลือก
-    const DEFAULT_HOURS_PRESETS = [72, 24, 3, 1, 0.5, 48, 12, 6, 2, 0.25];
+    // ค่าเริ่มต้นหลัก 2 ครั้ง (72 ชม. = 3 วัน และ 3 ชม.) และค่าแนะนำเพิ่มเติมหากเพิ่มจำนวนครั้ง
+    const DEFAULT_HOURS_PRESETS = [72, 3, 24, 1, 0.5, 48, 12, 6, 2, 0.25];
 
     function renderNotifyHoursInputs(count, existingValues = null) {
       const container = document.getElementById('notifyHoursContainer');
@@ -412,7 +418,7 @@
       renderNotifyHoursInputs(count);
     });
 
-    // ค่าเริ่มต้น 2 ครั้ง (72 ชม. และ 3 ชม.)
+    // ค่าเริ่มต้นหลัก 2 ครั้ง (ก่อนหมด 3 วัน = 72 ชม. และก่อนหมด 3 ชม. = 3 ชม.)
     renderNotifyHoursInputs(2, [72, 3]);
 
     function showBanner(type, message) {
@@ -733,14 +739,14 @@
         rawLink = 'https://' + rawLink;
       }
 
-      // อ่านค่าชั่วโมงล่วงหน้าทั้งหมดที่ผู้ใช้ตั้งไว้
+      // อ่านค่าชั่วโมงก่อนหมดเขตทั้งหมดที่ผู้ใช้ตั้งไว้
       const hourInputs = Array.from(document.querySelectorAll('.notify-hour-input'));
       const rawHours = hourInputs
         .map(input => parseFloat(input.value))
         .filter(n => !Number.isNaN(n) && n > 0);
 
       if (rawHours.length === 0) {
-        return alert("กรุณาระบุจำนวนชั่วโมงแจ้งเตือนล่วงหน้าอย่างน้อย 1 รายการ");
+        return alert("กรุณาระบุจำนวนชั่วโมงแจ้งเตือนก่อนหมดเขตอย่างน้อย 1 รายการ");
       }
 
       const notifyHoursBefore = Array.from(new Set(rawHours)).sort((a, b) => b - a);
@@ -1011,7 +1017,7 @@
                 <span class="text-red-600">ส่ง: <b>${t.dueDate} (${dueTimeStr} น.)</b></span>
               </div>
               <div class="text-[11px] text-gray-400 flex flex-wrap gap-1.5">
-                <span class="text-gray-500">แจ้งเตือน (${thresholds.length} ครั้ง):</span> ${scheduleBadgesHtml}
+                <span class="text-gray-500">แจ้งเตือนก่อนหมด (${thresholds.length} ครั้ง):</span> ${scheduleBadgesHtml}
               </div>
             </div>
             <div class="flex flex-col gap-1.5 shrink-0">
