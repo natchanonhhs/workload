@@ -176,7 +176,7 @@
 
       </div>
 
-      <!-- คอลัมน์ขวา: รายการงานทั้งหมดพร้อม 4 แท็บ -->
+      <!-- คอลัมน์ขวา: รายการงานทั้งหมดพร้อม 4 แท็บหลัก + แท็บย่อยตามรหัสวิชา + ตัวกรอง/เรียงลำดับ -->
       <div class="lg:col-span-7">
         <div class="bg-white p-6 rounded-2xl shadow-sm">
           <div class="flex justify-between items-center mb-4">
@@ -184,8 +184,8 @@
             <span id="taskCount" class="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full">0 รายการ</span>
           </div>
 
-          <!-- แถบเลือก 4 แท็บ -->
-          <div id="taskTabs" class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+          <!-- แถบเลือก 4 แท็บหลัก -->
+          <div id="taskTabs" class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
             <button type="button" data-tab="active_all" class="tab-btn text-left px-3.5 py-2.5 rounded-xl text-xs font-medium transition border bg-[#164277] text-white border-[#164277]">
               <div class="flex justify-between items-center gap-2">
                 <span>งานทั้งหมดที่ยังคงส่งการแจ้งเตือนอยู่</span>
@@ -210,6 +210,41 @@
                 <span id="count_completed_expired" class="px-2 py-0.5 rounded-full text-[11px] bg-gray-200 text-gray-700">0</span>
               </div>
             </button>
+          </div>
+
+          <!-- แท็บย่อยในแท็บ (แยกตามรหัสวิชา) + ตัวกรองและการเรียงลำดับ -->
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-4 space-y-2.5">
+            <div>
+              <div class="text-[11px] font-medium text-slate-500 mb-1.5">แยกตามรหัสวิชา (แท็บย่อย):</div>
+              <div id="courseSubTabs" class="flex flex-wrap gap-1.5">
+                <button type="button" data-course="ALL" class="subtab-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-[#164277] text-white border border-[#164277]">
+                  ทุกรหัสวิชา (0)
+                </button>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-12 gap-2">
+              <div class="sm:col-span-5">
+                <input type="text" id="searchFilterInput" placeholder="ค้นหาชื่องาน / ชื่อวิชา..." class="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs focus:ring-1 focus:ring-[#164277] outline-none">
+              </div>
+              <div class="sm:col-span-3">
+                <select id="typeFilterSelect" class="w-full px-2 py-1.5 bg-white border border-slate-300 rounded-lg text-xs outline-none">
+                  <option value="ALL">ทุกประเภทงาน</option>
+                  <option value="งานเดี่ยว">งานเดี่ยว</option>
+                  <option value="งานกลุ่ม">งานกลุ่ม</option>
+                  <option value="Lab / ปฏิบัติการ">Lab / ปฏิบัติการ</option>
+                  <option value="Quiz / สอบ">Quiz / สอบ</option>
+                  <option value="โปรเจกต์">โปรเจกต์</option>
+                </select>
+              </div>
+              <div class="sm:col-span-4">
+                <select id="sortOrderSelect" class="w-full px-2 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-medium text-[#164277] outline-none">
+                  <option value="due_asc">เรียงหมดเขตใกล้สุดก่อน</option>
+                  <option value="due_desc">เรียงหมดเขตไกลสุดก่อน</option>
+                  <option value="course_asc">เรียงตามรหัสวิชา (A-Z)</option>
+                </select>
+              </div>
+            </div>
           </div>
 
           <div id="taskList" class="space-y-3">
@@ -244,6 +279,7 @@
     let allGroups = [];
     let allTasksCache = [];
     let currentTab = "active_all";
+    let currentCourseSubTab = "ALL";
     let unsubscribeTasks = null;
     const todayStr = new Date().toLocaleDateString('en-CA');
     document.getElementById('startDate').value = todayStr;
@@ -313,14 +349,20 @@
 
     document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
 
-    // จัดการการสลับ 4 แท็บ
+    // จัดการการสลับ 4 แท็บหลัก
     document.querySelectorAll('.tab-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         currentTab = btn.dataset.tab;
+        currentCourseSubTab = "ALL";
         updateTabStyles();
         renderFilteredTasks();
       });
     });
+
+    // จัดการตัวกรองและการเรียงลำดับเพิ่มเติม
+    document.getElementById('searchFilterInput').addEventListener('input', renderFilteredTasks);
+    document.getElementById('typeFilterSelect').addEventListener('change', renderFilteredTasks);
+    document.getElementById('sortOrderSelect').addEventListener('change', renderFilteredTasks);
 
     function updateTabStyles() {
       document.querySelectorAll('.tab-btn').forEach((btn) => {
@@ -482,9 +524,11 @@
     });
 
     function toBangkokTimestamp(dateStr, timeStr) {
+      if (!dateStr) return Number.MAX_SAFE_INTEGER;
       let t = (timeStr || "23:59:00").trim();
       if (t.length === 5) t += ":00";
-      return Date.parse(`${dateStr}T${t}+07:00`);
+      const parsed = Date.parse(`${dateStr}T${t}+07:00`);
+      return Number.isNaN(parsed) ? Number.MAX_SAFE_INTEGER : parsed;
     }
 
     function classifyTask(t) {
@@ -515,6 +559,61 @@
       });
     }
 
+    function renderCourseSubTabs(mainTabTasks) {
+      const subTabsContainer = document.getElementById('courseSubTabs');
+      const courseMap = new Map();
+
+      mainTabTasks.forEach((t) => {
+        const code = (t.courseCode || "ไม่ระบุรหัส").trim();
+        if (!courseMap.has(code)) {
+          courseMap.set(code, { count: 0, courseName: t.courseName || "" });
+        }
+        courseMap.get(code).count += 1;
+      });
+
+      const sortedCodes = Array.from(courseMap.keys()).sort((a, b) =>
+        a.localeCompare(b, undefined, { numeric: true })
+      );
+
+      if (currentCourseSubTab !== "ALL" && !courseMap.has(currentCourseSubTab)) {
+        currentCourseSubTab = "ALL";
+      }
+
+      subTabsContainer.innerHTML = '';
+
+      // ปุ่มแท็บย่อย "ทุกรหัสวิชา"
+      const allBtn = document.createElement('button');
+      allBtn.type = 'button';
+      const isAllSelected = currentCourseSubTab === "ALL";
+      allBtn.className = isAllSelected
+        ? "px-2.5 py-1 rounded-lg text-xs font-medium transition border bg-[#164277] text-white border-[#164277]"
+        : "px-2.5 py-1 rounded-lg text-xs font-medium transition border bg-white text-slate-700 border-slate-300 hover:bg-slate-100";
+      allBtn.textContent = `ทุกรหัสวิชา (${mainTabTasks.length})`;
+      allBtn.onclick = () => {
+        currentCourseSubTab = "ALL";
+        renderFilteredTasks();
+      };
+      subTabsContainer.appendChild(allBtn);
+
+      // ปุ่มแท็บย่อยแยกตามแต่ละรหัสวิชาในแท็บหลักนั้นๆ
+      sortedCodes.forEach((code) => {
+        const info = courseMap.get(code);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        const isSelected = currentCourseSubTab === code;
+        btn.title = info.courseName ? `${code} - ${info.courseName}` : code;
+        btn.className = isSelected
+          ? "px-2.5 py-1 rounded-lg text-xs font-medium transition border bg-[#164277] text-white border-[#164277]"
+          : "px-2.5 py-1 rounded-lg text-xs font-medium transition border bg-white text-slate-700 border-slate-300 hover:bg-slate-100";
+        btn.textContent = `${code} (${info.count})`;
+        btn.onclick = () => {
+          currentCourseSubTab = code;
+          renderFilteredTasks();
+        };
+        subTabsContainer.appendChild(btn);
+      });
+    }
+
     function renderFilteredTasks() {
       const listEl = document.getElementById('taskList');
       const countEl = document.getElementById('taskCount');
@@ -526,7 +625,7 @@
         completed_expired: 0
       };
 
-      const filtered = allTasksCache.filter((t) => {
+      const mainTabTasks = allTasksCache.filter((t) => {
         const flags = classifyTask(t);
         if (flags.active_all) counts.active_all++;
         if (flags.pending_3days) counts.pending_3days++;
@@ -539,12 +638,51 @@
       document.getElementById('count_pending_3days').textContent = counts.pending_3days;
       document.getElementById('count_pending_3hours').textContent = counts.pending_3hours;
       document.getElementById('count_completed_expired').textContent = counts.completed_expired;
+
+      // อัปเดตแท็บย่อยตามรหัสวิชาภายในแท็บหลักที่เลือกอยู่
+      renderCourseSubTabs(mainTabTasks);
+
+      // กรองตามแท็บย่อยรหัสวิชา + ประเภทงาน + คำค้นหา
+      const searchQuery = document.getElementById('searchFilterInput').value.trim().toLowerCase();
+      const typeFilter = document.getElementById('typeFilterSelect').value;
+      const sortOrder = document.getElementById('sortOrderSelect').value;
+
+      const filtered = mainTabTasks.filter((t) => {
+        const code = (t.courseCode || "ไม่ระบุรหัส").trim();
+        if (currentCourseSubTab !== "ALL" && code !== currentCourseSubTab) {
+          return false;
+        }
+        if (typeFilter !== "ALL" && t.taskType !== typeFilter) {
+          return false;
+        }
+        if (searchQuery) {
+          const haystack = `${t.courseCode || ""} ${t.courseName || ""} ${t.taskTitle || ""} ${t.description || ""}`.toLowerCase();
+          if (!haystack.includes(searchQuery)) return false;
+        }
+        return true;
+      });
+
+      // เรียงลำดับตามตัวเลือก (ค่าเริ่มต้น: วันและเวลาหมดเขตที่ใกล้ที่สุดขึ้นก่อน)
+      filtered.sort((a, b) => {
+        const dueA = toBangkokTimestamp(a.dueDate, a.dueTime || "23:59");
+        const dueB = toBangkokTimestamp(b.dueDate, b.dueTime || "23:59");
+
+        if (sortOrder === "due_desc") {
+          return dueB - dueA;
+        }
+        if (sortOrder === "course_asc") {
+          const cmp = (a.courseCode || "").localeCompare(b.courseCode || "", undefined, { numeric: true });
+          return cmp !== 0 ? cmp : dueA - dueB;
+        }
+        return dueA - dueB;
+      });
+
       countEl.textContent = `แสดง ${filtered.length} / ทั้งหมด ${allTasksCache.length} รายการ`;
 
       listEl.innerHTML = '';
 
       if (filtered.length === 0) {
-        listEl.innerHTML = '<p class="text-sm text-gray-400 py-6 text-center">ไม่มีรายการงานในแท็บนี้</p>';
+        listEl.innerHTML = '<p class="text-sm text-gray-400 py-6 text-center">ไม่มีรายการงานที่ตรงกับเงื่อนไขในแท็บนี้</p>';
         return;
       }
 
