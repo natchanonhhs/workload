@@ -39,7 +39,7 @@
     <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
       <div>
         <h1 class="text-2xl font-semibold text-gray-900">ระบบจัดการงาน & แจ้งเตือน LINE</h1>
-        <p class="text-sm text-gray-500">แจ้งเตือนอัตโนมัติ 3 ช่วง: วันและเวลาเริ่มงาน / 3 วันก่อนสิ้นสุด / 3 ชั่วโมงก่อนสิ้นสุด</p>
+        <p class="text-sm text-gray-500">แจ้งเตือนทันทีเมื่อบันทึก + เช็กอัตโนมัติทุก 1 นาที (เริ่มงาน / ก่อน 3 วัน / ก่อน 3 ชม.)</p>
       </div>
       <button id="logoutBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm">
         ออกจากระบบ
@@ -50,11 +50,9 @@
       <!-- คอลัมน์ซ้าย: ฟอร์มเพิ่มงาน + ตั้งค่ากลุ่ม LINE -->
       <div class="lg:col-span-5 space-y-6">
 
-        <!-- กล่องเพิ่ม/แก้ไขงาน -->
         <div class="bg-white p-6 rounded-2xl shadow-sm">
           <h2 id="formTitle" class="text-lg font-semibold text-indigo-600 mb-4">+ เพิ่มรายการงานใหม่</h2>
 
-          <!-- ปุ่มเลือกรายวิชาด่วน -->
           <div class="mb-4 p-3 bg-indigo-50/60 rounded-xl border border-indigo-100">
             <div class="flex justify-between items-center mb-1.5">
               <span class="text-xs font-medium text-indigo-900">เลือกวิชาด่วน (คลิกเพื่อกรอกอัตโนมัติ):</span>
@@ -110,11 +108,10 @@
             </div>
 
             <div>
-              <label class="block text-xs font-medium mb-1">ลิงก์ส่งงาน / โจทย์ (กดปุ่มจากใน LINE ได้เลย)</label>
+              <label class="block text-xs font-medium mb-1">ลิงก์ส่งงาน / โจทย์</label>
               <input type="text" id="link" placeholder="https://lms.psu.ac.th/..." class="w-full px-3 py-2 border rounded-lg text-sm">
             </div>
 
-            <!-- วันและเวลาเริ่มงาน -->
             <div class="grid grid-cols-2 gap-2">
               <div>
                 <label class="block text-xs font-medium mb-1">วันเริ่มงาน *</label>
@@ -126,7 +123,6 @@
               </div>
             </div>
 
-            <!-- วันและเวลาสิ้นสุด -->
             <div class="grid grid-cols-2 gap-2">
               <div>
                 <label class="block text-xs font-medium mb-1">วันสิ้นสุด (ส่ง) *</label>
@@ -138,7 +134,6 @@
               </div>
             </div>
 
-            <!-- เลือกกลุ่ม LINE -->
             <div class="p-3 bg-emerald-50/70 rounded-xl border border-emerald-200">
               <div class="flex justify-between items-center mb-1.5">
                 <label class="block text-xs font-semibold text-emerald-900">เลือกกลุ่ม LINE ที่แจ้งเตือน</label>
@@ -182,7 +177,7 @@
       <div class="lg:col-span-7">
         <div class="bg-white p-6 rounded-2xl shadow-sm">
           <div class="flex justify-between items-center mb-4">
-            <h2 class="text-lg font-semibold text-gray-800">รายการงานในระบบ</h2>
+            <h2 class="text-lg font-semibold text-gray-800">รายการงานในระบบ (อัปเดตสด)</h2>
             <span id="taskCount" class="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full">0 รายการ</span>
           </div>
           <div id="taskList" class="space-y-3">
@@ -196,7 +191,10 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-    import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+    // นำ Web app URL ของ Google Apps Script มาวางแทนที่ตรงนี้
+    const GAS_WEBHOOK_URL = "วาง_WEB_APP_URL_ของ_APPS_SCRIPT_ตรงนี้";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC1hcjwUVhSvYLw2JU4sIQoTwI46WVHxyE",
@@ -213,8 +211,20 @@
     const db = getFirestore(app);
 
     let allGroups = [];
+    let unsubscribeTasks = null;
     const todayStr = new Date().toLocaleDateString('en-CA');
     document.getElementById('startDate').value = todayStr;
+
+    // สะกิดให้ Apps Script ตรวจสอบและส่งเข้า LINE ทันทีใน 1 วินาที
+    function triggerInstantCheck() {
+      if (!GAS_WEBHOOK_URL.startsWith("https://")) return;
+      fetch(GAS_WEBHOOK_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({ action: "instant_check" })
+      }).catch(() => {});
+    }
 
     onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -222,8 +232,9 @@
         document.getElementById('appSection').classList.remove('hidden');
         await loadGroups();
         await loadCoursePresets();
-        await loadTasks();
+        listenTasksRealtime();
       } else {
+        if (unsubscribeTasks) unsubscribeTasks();
         document.getElementById('loginSection').classList.remove('hidden');
         document.getElementById('appSection').classList.add('hidden');
       }
@@ -244,7 +255,7 @@
 
     document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
 
-    // ================= จัดการกลุ่ม LINE =================
+    // จัดการกลุ่ม LINE
     document.getElementById('groupForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = document.getElementById('newGroupName').value.trim();
@@ -307,7 +318,7 @@
       boxes.forEach(b => b.checked = !allChecked);
     });
 
-    // ================= จัดการวิชาด่วน =================
+    // จัดการวิชาด่วน
     document.getElementById('savePresetBtn').addEventListener('click', async () => {
       const code = document.getElementById('courseCode').value.trim();
       const name = document.getElementById('courseName').value.trim();
@@ -338,7 +349,7 @@
       });
     }
 
-    // ================= บันทึก / แก้ไข / แสดงรายการงาน =================
+    // บันทึก / แก้ไข / แสดงรายการงานสด
     document.getElementById('taskForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const selectedBoxes = Array.from(document.querySelectorAll('input[name="targetGroups"]:checked'));
@@ -387,98 +398,101 @@
         document.getElementById('description').value = '';
         document.getElementById('link').value = '';
       }
-      await loadTasks();
+
+      // สะกิดแจ้งเตือนทันทีภายใน 1 วินาที
+      triggerInstantCheck();
     });
 
-    async function loadTasks() {
+    function listenTasksRealtime() {
       const listEl = document.getElementById('taskList');
       const countEl = document.getElementById('taskCount');
       const q = query(collection(db, "tasks"), orderBy("dueDate", "asc"));
-      const snap = await getDocs(q);
 
-      countEl.textContent = `${snap.size} รายการ`;
-      listEl.innerHTML = '';
+      unsubscribeTasks = onSnapshot(q, (snap) => {
+        countEl.textContent = `${snap.size} รายการ`;
+        listEl.innerHTML = '';
 
-      if (snap.empty) {
-        listEl.innerHTML = '<p class="text-sm text-gray-400">ยังไม่มีรายการงานในระบบ</p>';
-        return;
-      }
+        if (snap.empty) {
+          listEl.innerHTML = '<p class="text-sm text-gray-400">ยังไม่มีรายการงานในระบบ</p>';
+          return;
+        }
 
-      snap.forEach((docSnap) => {
-        const t = docSnap.data();
-        const id = docSnap.id;
-        const startTimeStr = t.startTime || '08:00';
-        const groupsBadge = (t.targetGroupNames && t.targetGroupNames.length > 0)
-          ? t.targetGroupNames.map(name => `<span class="text-[11px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">${name}</span>`).join(' ')
-          : '<span class="text-[11px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">ยังไม่ระบุกลุ่ม</span>';
+        snap.forEach((docSnap) => {
+          const t = docSnap.data();
+          const id = docSnap.id;
+          const startTimeStr = t.startTime || '08:00';
+          const dueTimeStr = t.dueTime || '23:59';
+          const groupsBadge = (t.targetGroupNames && t.targetGroupNames.length > 0)
+            ? t.targetGroupNames.map(name => `<span class="text-[11px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">${name}</span>`).join(' ')
+            : '<span class="text-[11px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">ยังไม่ระบุกลุ่ม</span>';
 
-        const card = document.createElement('div');
-        card.className = 'border rounded-xl p-4 hover:border-indigo-300 transition bg-gray-50';
-        card.innerHTML = `
-          <div class="flex justify-between items-start gap-3">
-            <div class="space-y-1">
-              <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="text-xs font-semibold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded">${t.courseCode}</span>
-                <span class="text-xs font-medium text-gray-600">${t.courseName}</span>
-                <span class="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded">${t.taskType}</span>
-                ${t.status === 'Cancelled' ? '<span class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded">ยกเลิกแล้ว</span>' : ''}
+          const card = document.createElement('div');
+          card.className = 'border rounded-xl p-4 hover:border-indigo-300 transition bg-gray-50';
+          card.innerHTML = `
+            <div class="flex justify-between items-start gap-3">
+              <div class="space-y-1">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="text-xs font-semibold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded">${t.courseCode}</span>
+                  <span class="text-xs font-medium text-gray-600">${t.courseName}</span>
+                  <span class="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded">${t.taskType}</span>
+                  ${t.status === 'Cancelled' ? '<span class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded">ยกเลิกแล้ว</span>' : ''}
+                </div>
+                <h3 class="font-semibold text-gray-900">${t.taskTitle}</h3>
+                <p class="text-sm text-gray-600">${t.description || '-'}</p>
+                ${t.link ? `<a href="${t.link}" target="_blank" class="inline-block text-xs text-indigo-600 hover:underline break-all">${t.link}</a>` : ''}
+                <div class="pt-1 flex flex-wrap gap-1 items-center">
+                  <span class="text-[11px] text-gray-500">กลุ่มเป้าหมาย:</span> ${groupsBadge}
+                </div>
+                <div class="text-xs text-gray-500 pt-1 flex flex-wrap gap-3">
+                  <span>เริ่ม: <b>${t.startDate} (${startTimeStr} น.)</b></span>
+                  <span class="text-red-600">ส่ง: <b>${t.dueDate} (${dueTimeStr} น.)</b></span>
+                </div>
+                <div class="text-[11px] text-gray-400 flex gap-2">
+                  <span class="${t.notified_start ? 'text-emerald-600 font-medium' : ''}">เริ่มงาน: ${t.notified_start ? 'ส่งแล้ว' : 'รอส่ง'}</span> •
+                  <span class="${t.notified_3days ? 'text-emerald-600 font-medium' : ''}">ก่อน 3 วัน: ${t.notified_3days ? 'ส่งแล้ว' : 'รอส่ง'}</span> •
+                  <span class="${t.notified_due ? 'text-emerald-600 font-medium' : ''}">ก่อน 3 ชม.: ${t.notified_due ? 'ส่งแล้ว' : 'รอส่ง'}</span>
+                </div>
               </div>
-              <h3 class="font-semibold text-gray-900">${t.taskTitle}</h3>
-              <p class="text-sm text-gray-600">${t.description || '-'}</p>
-              ${t.link ? `<a href="${t.link}" target="_blank" class="inline-block text-xs text-indigo-600 hover:underline break-all">${t.link}</a>` : ''}
-              <div class="pt-1 flex flex-wrap gap-1 items-center">
-                <span class="text-[11px] text-gray-500">กลุ่มเป้าหมาย:</span> ${groupsBadge}
-              </div>
-              <div class="text-xs text-gray-500 pt-1 flex flex-wrap gap-3">
-                <span>เริ่ม: <b>${t.startDate} (${startTimeStr} น.)</b></span>
-                <span class="text-red-600">ส่ง: <b>${t.dueDate} (${t.dueTime} น.)</b></span>
-              </div>
-              <div class="text-[11px] text-gray-400 flex gap-2">
-                <span>เริ่มงาน: ${t.notified_start ? 'ส่งแล้ว' : 'รอส่ง'}</span> •
-                <span>ก่อน 3 วัน: ${t.notified_3days ? 'ส่งแล้ว' : 'รอส่ง'}</span> •
-                <span>ก่อน 3 ชม.: ${t.notified_due ? 'ส่งแล้ว' : 'รอส่ง'}</span>
+              <div class="flex flex-col gap-1.5 shrink-0">
+                <button class="edit-btn text-xs bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-1.5 rounded-lg">แก้ไข</button>
+                <button class="del-btn text-xs bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 rounded-lg">ลบ</button>
               </div>
             </div>
-            <div class="flex flex-col gap-1.5 shrink-0">
-              <button class="edit-btn text-xs bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-1.5 rounded-lg">แก้ไข</button>
-              <button class="del-btn text-xs bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 rounded-lg">ลบ</button>
-            </div>
-          </div>
-        `;
+          `;
 
-        card.querySelector('.edit-btn').onclick = () => {
-          document.getElementById('editDocId').value = id;
-          document.getElementById('formTitle').textContent = 'แก้ไขรายการงาน';
-          document.getElementById('submitBtn').textContent = 'อัปเดตข้อมูล';
-          document.getElementById('cancelEditBtn').classList.remove('hidden');
-          document.getElementById('courseCode').value = t.courseCode;
-          document.getElementById('courseName').value = t.courseName;
-          document.getElementById('taskType').value = t.taskType;
-          document.getElementById('taskStatus').value = t.status;
-          document.getElementById('taskTitle').value = t.taskTitle;
-          document.getElementById('description').value = t.description;
-          document.getElementById('link').value = t.link;
-          document.getElementById('startDate').value = t.startDate;
-          document.getElementById('startTime').value = t.startTime || '08:00';
-          document.getElementById('dueDate').value = t.dueDate;
-          document.getElementById('dueTime').value = t.dueTime;
+          card.querySelector('.edit-btn').onclick = () => {
+            document.getElementById('editDocId').value = id;
+            document.getElementById('formTitle').textContent = 'แก้ไขรายการงาน';
+            document.getElementById('submitBtn').textContent = 'อัปเดตข้อมูล';
+            document.getElementById('cancelEditBtn').classList.remove('hidden');
+            document.getElementById('courseCode').value = t.courseCode;
+            document.getElementById('courseName').value = t.courseName;
+            document.getElementById('taskType').value = t.taskType;
+            document.getElementById('taskStatus').value = t.status;
+            document.getElementById('taskTitle').value = t.taskTitle;
+            document.getElementById('description').value = t.description;
+            document.getElementById('link').value = t.link;
+            document.getElementById('startDate').value = t.startDate;
+            document.getElementById('startTime').value = startTimeStr;
+            document.getElementById('dueDate').value = t.dueDate;
+            document.getElementById('dueTime').value = dueTimeStr;
 
-          const savedIds = t.targetGroupIds || [];
-          document.querySelectorAll('input[name="targetGroups"]').forEach(box => {
-            box.checked = savedIds.includes(box.value);
-          });
+            const savedIds = t.targetGroupIds || [];
+            document.querySelectorAll('input[name="targetGroups"]').forEach(box => {
+              box.checked = savedIds.includes(box.value);
+            });
 
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        };
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          };
 
-        card.querySelector('.del-btn').onclick = async () => {
-          if (confirm(`ยืนยันการลบงาน "${t.taskTitle}" หรือไม่?`)) {
-            await deleteDoc(doc(db, "tasks", id));
-            await loadTasks();
-          }
-        };
+          card.querySelector('.del-btn').onclick = async () => {
+            if (confirm(`ยืนยันการลบงาน "${t.taskTitle}" หรือไม่?`)) {
+              await deleteDoc(doc(db, "tasks", id));
+            }
+          };
 
-        listEl.appendChild(card);
+          listEl.appendChild(card);
+        });
       });
     }
 
