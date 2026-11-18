@@ -39,7 +39,7 @@
     <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
       <div>
         <h1 class="text-2xl font-semibold text-gray-900">ระบบจัดการงาน & แจ้งเตือน LINE</h1>
-        <p class="text-sm text-gray-500">แจ้งเตือนอัตโนมัติ 2 ช่วง (ก่อนหมดเขต 3 วัน / ก่อนหมดเขต 3 ชั่วโมง) + ส่งแบบแมนนวลได้ทันที</p>
+        <p class="text-sm text-gray-500">กำหนดจำนวนครั้งและชั่วโมงแจ้งเตือนล่วงหน้าได้อิสระ + ส่งแบบแมนนวลได้ทันที</p>
       </div>
       <button id="logoutBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm">
         ออกจากระบบ
@@ -82,13 +82,16 @@
 
             <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="block text-xs font-medium mb-1">ประเภทงาน</label>
+                <label class="block text-xs font-medium mb-1">ประเภทงาน / หมวดหมู่</label>
                 <select id="taskType" class="w-full px-3 py-2 border rounded-lg text-sm bg-white">
                   <option value="งานเดี่ยว">งานเดี่ยว</option>
                   <option value="งานกลุ่ม">งานกลุ่ม</option>
                   <option value="Lab / ปฏิบัติการ">Lab / ปฏิบัติการ</option>
                   <option value="Quiz / สอบ">Quiz / สอบ</option>
                   <option value="โปรเจกต์">โปรเจกต์</option>
+                  <option value="เช็คชื่อ">เช็คชื่อ</option>
+                  <option value="เรียน">เรียน</option>
+                  <option value="เรียนชดเชย">เรียนชดเชย</option>
                 </select>
               </div>
               <div>
@@ -101,7 +104,7 @@
             </div>
 
             <div>
-              <label class="block text-xs font-medium mb-1">ชื่องาน *</label>
+              <label class="block text-xs font-medium mb-1">ชื่องาน / หัวข้อ *</label>
               <input type="text" id="taskTitle" placeholder="เช่น Lab 02: Linux Installation" required class="w-full px-3 py-2 border rounded-lg text-sm">
             </div>
 
@@ -135,6 +138,27 @@
                 <label class="block text-xs font-medium mb-1">เวลาที่สิ้นสุด *</label>
                 <input type="time" id="dueTime" value="23:59" required class="w-full px-3 py-2 border rounded-lg text-sm">
               </div>
+            </div>
+
+            <!-- ส่วนตั้งค่าจำนวนครั้งและชั่วโมงที่ต้องการให้แจ้งเตือนล่วงหน้า -->
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+              <div class="flex justify-between items-center gap-2">
+                <label for="notifyCount" class="text-xs font-semibold text-[#164277]">จำนวนครั้งที่แจ้งเตือนอัตโนมัติ</label>
+                <select id="notifyCount" class="px-2.5 py-1 border border-slate-300 rounded-lg text-xs bg-white font-medium text-[#164277] outline-none">
+                  <option value="1">1 ครั้ง</option>
+                  <option value="2" selected>2 ครั้ง</option>
+                  <option value="3">3 ครั้ง</option>
+                  <option value="4">4 ครั้ง</option>
+                  <option value="5">5 ครั้ง</option>
+                  <option value="6">6 ครั้ง</option>
+                  <option value="7">7 ครั้ง</option>
+                  <option value="8">8 ครั้ง</option>
+                  <option value="9">9 ครั้ง</option>
+                  <option value="10">10 ครั้ง</option>
+                </select>
+              </div>
+              <div id="notifyHoursContainer" class="space-y-1.5"></div>
+              <p class="text-[11px] text-gray-500">ระบุจำนวนชั่วโมงก่อนถึงเวลาสิ้นสุด (เช่น 72 = 3 วัน, 24 = 1 วัน, 0.5 = 30 นาที)</p>
             </div>
 
             <div class="p-3 bg-emerald-50/70 rounded-xl border border-emerald-200">
@@ -229,12 +253,15 @@
               </div>
               <div class="sm:col-span-3">
                 <select id="typeFilterSelect" class="w-full px-2 py-1.5 bg-white border border-slate-300 rounded-lg text-xs outline-none">
-                  <option value="ALL">ทุกประเภทงาน</option>
+                  <option value="ALL">ทุกหมวดหมู่</option>
                   <option value="งานเดี่ยว">งานเดี่ยว</option>
                   <option value="งานกลุ่ม">งานกลุ่ม</option>
                   <option value="Lab / ปฏิบัติการ">Lab / ปฏิบัติการ</option>
                   <option value="Quiz / สอบ">Quiz / สอบ</option>
                   <option value="โปรเจกต์">โปรเจกต์</option>
+                  <option value="เช็คชื่อ">เช็คชื่อ</option>
+                  <option value="เรียน">เรียน</option>
+                  <option value="เรียนชดเชย">เรียนชดเชย</option>
                 </select>
               </div>
               <div class="sm:col-span-4">
@@ -348,6 +375,45 @@
 
     const todayStr = new Date().toLocaleDateString('en-CA');
     document.getElementById('startDate').value = todayStr;
+
+    // สร้างช่องกรอกชั่วโมงล่วงหน้าตามจำนวนครั้งที่เลือก
+    const DEFAULT_HOURS_PRESETS = [72, 24, 3, 1, 0.5, 48, 12, 6, 2, 0.25];
+
+    function renderNotifyHoursInputs(count, existingValues = null) {
+      const container = document.getElementById('notifyHoursContainer');
+      const currentInputs = Array.from(container.querySelectorAll('.notify-hour-input')).map(el => el.value);
+      container.innerHTML = '';
+
+      for (let i = 0; i < count; i++) {
+        let val = "";
+        if (existingValues && existingValues[i] !== undefined) {
+          val = existingValues[i];
+        } else if (currentInputs[i] !== undefined && currentInputs[i] !== "") {
+          val = currentInputs[i];
+        } else {
+          val = DEFAULT_HOURS_PRESETS[i] !== undefined ? DEFAULT_HOURS_PRESETS[i] : 1;
+        }
+
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between gap-2 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200';
+        row.innerHTML = `
+          <span class="text-xs text-gray-600">แจ้งเตือนครั้งที่ ${i + 1}: ก่อนหมดเขต</span>
+          <div class="flex items-center gap-1.5">
+            <input type="number" step="any" min="0.05" required value="${val}" class="notify-hour-input w-20 px-2 py-1 border rounded text-xs text-right font-medium text-[#164277] focus:ring-1 focus:ring-[#164277] outline-none">
+            <span class="text-xs text-gray-500">ชม.</span>
+          </div>
+        `;
+        container.appendChild(row);
+      }
+    }
+
+    document.getElementById('notifyCount').addEventListener('change', (e) => {
+      const count = parseInt(e.target.value, 10) || 2;
+      renderNotifyHoursInputs(count);
+    });
+
+    // ค่าเริ่มต้น 2 ครั้ง (72 ชม. และ 3 ชม.)
+    renderNotifyHoursInputs(2, [72, 3]);
 
     function showBanner(type, message) {
       const banner = document.getElementById('statusBanner');
@@ -667,6 +733,18 @@
         rawLink = 'https://' + rawLink;
       }
 
+      // อ่านค่าชั่วโมงล่วงหน้าทั้งหมดที่ผู้ใช้ตั้งไว้
+      const hourInputs = Array.from(document.querySelectorAll('.notify-hour-input'));
+      const rawHours = hourInputs
+        .map(input => parseFloat(input.value))
+        .filter(n => !Number.isNaN(n) && n > 0);
+
+      if (rawHours.length === 0) {
+        return alert("กรุณาระบุจำนวนชั่วโมงแจ้งเตือนล่วงหน้าอย่างน้อย 1 รายการ");
+      }
+
+      const notifyHoursBefore = Array.from(new Set(rawHours)).sort((a, b) => b - a);
+
       const editId = document.getElementById('editDocId').value;
       const taskData = {
         courseCode: document.getElementById('courseCode').value.trim(),
@@ -680,6 +758,8 @@
         startTime: document.getElementById('startTime').value,
         dueDate: document.getElementById('dueDate').value,
         dueTime: document.getElementById('dueTime').value,
+        notifyCount: notifyHoursBefore.length,
+        notifyHoursBefore,
         targetGroupIds,
         targetGroupNames
       };
@@ -687,6 +767,7 @@
       if (editId) {
         await updateDoc(doc(db, "tasks", editId), {
           ...taskData,
+          notifiedHours: [],
           notified_3days: false,
           notified_due: false
         });
@@ -694,6 +775,7 @@
       } else {
         await addDoc(collection(db, "tasks"), {
           ...taskData,
+          notifiedHours: [],
           notified_3days: false,
           notified_due: false,
           createdAt: serverTimestamp()
@@ -714,18 +796,42 @@
       return Number.isNaN(parsed) ? Number.MAX_SAFE_INTEGER : parsed;
     }
 
+    function getTaskScheduleInfo(t) {
+      let thresholds = Array.isArray(t.notifyHoursBefore) && t.notifyHoursBefore.length > 0
+        ? t.notifyHoursBefore.map(Number).filter(n => !Number.isNaN(n) && n > 0)
+        : [72, 3];
+
+      let notified = Array.isArray(t.notifiedHours)
+        ? t.notifiedHours.map(Number).filter(n => !Number.isNaN(n) && n > 0)
+        : [];
+
+      if (!Array.isArray(t.notifyHoursBefore) || t.notifyHoursBefore.length === 0) {
+        notified = [];
+        if (t.notified_3days) notified.push(72);
+        if (t.notified_due) notified.push(3);
+      }
+
+      thresholds = Array.from(new Set(thresholds)).sort((a, b) => b - a);
+      const remaining = thresholds.filter(h => !notified.some(sentH => Math.abs(sentH - h) < 0.0001));
+
+      return { thresholds, notified, remaining };
+    }
+
     function classifyTask(t) {
       const nowMs = Date.now();
       const dueMs = toBangkokTimestamp(t.dueDate, t.dueTime || "23:59");
       const isExpired = dueMs <= nowMs;
       const isCancelled = t.status === "Cancelled";
-      const isAllSent = Boolean(t.notified_due);
+
+      const { remaining } = getTaskScheduleInfo(t);
+      const isAllSent = remaining.length === 0;
       const isStillActive = !isExpired && !isCancelled && !isAllSent;
+      const nextThreshold = remaining.length > 0 ? remaining[0] : null;
 
       return {
         active_all: isStillActive,
-        pending_3days: isStillActive && !t.notified_3days,
-        pending_3hours: isStillActive && Boolean(t.notified_3days) && !t.notified_due,
+        pending_3days: isStillActive && nextThreshold !== null && nextThreshold > 3,
+        pending_3hours: isStillActive && nextThreshold !== null && nextThreshold <= 3,
         completed_expired: !isStillActive
       };
     }
@@ -877,6 +983,12 @@
           ? t.targetGroupNames.map(name => `<span class="text-[11px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">${name}</span>`).join(' ')
           : '<span class="text-[11px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">ยังไม่ระบุกลุ่ม</span>';
 
+        const { thresholds, notified } = getTaskScheduleInfo(t);
+        const scheduleBadgesHtml = thresholds.map((h) => {
+          const isSent = notified.some(sentH => Math.abs(sentH - h) < 0.0001);
+          return `<span class="${isSent ? 'text-emerald-600 font-medium' : ''}">ก่อน ${h} ชม.: ${isSent ? 'ส่งแล้ว' : 'รอส่ง'}</span>`;
+        }).join(' • ');
+
         const card = document.createElement('div');
         card.className = 'border rounded-xl p-4 hover:border-[#164277] transition bg-gray-50';
         card.innerHTML = `
@@ -898,9 +1010,8 @@
                 <span>เริ่ม: <b>${t.startDate} (${startTimeStr} น.)</b></span>
                 <span class="text-red-600">ส่ง: <b>${t.dueDate} (${dueTimeStr} น.)</b></span>
               </div>
-              <div class="text-[11px] text-gray-400 flex gap-2">
-                <span class="${t.notified_3days ? 'text-emerald-600 font-medium' : ''}">ก่อน 3 วัน: ${t.notified_3days ? 'ส่งแล้ว' : 'รอส่ง'}</span> •
-                <span class="${t.notified_due ? 'text-emerald-600 font-medium' : ''}">ก่อน 3 ชม.: ${t.notified_due ? 'ส่งแล้ว' : 'รอส่ง'}</span>
+              <div class="text-[11px] text-gray-400 flex flex-wrap gap-1.5">
+                <span class="text-gray-500">แจ้งเตือน (${thresholds.length} ครั้ง):</span> ${scheduleBadgesHtml}
               </div>
             </div>
             <div class="flex flex-col gap-1.5 shrink-0">
@@ -931,6 +1042,11 @@
           document.getElementById('startTime').value = startTimeStr;
           document.getElementById('dueDate').value = t.dueDate;
           document.getElementById('dueTime').value = dueTimeStr;
+
+          const { thresholds } = getTaskScheduleInfo(t);
+          const countVal = Math.min(Math.max(thresholds.length, 1), 10);
+          document.getElementById('notifyCount').value = String(countVal);
+          renderNotifyHoursInputs(countVal, thresholds);
 
           const savedIds = t.targetGroupIds || [];
           document.querySelectorAll('input[name="targetGroups"]').forEach(box => {
@@ -964,6 +1080,8 @@
       document.getElementById('startDate').value = todayStr;
       document.getElementById('startTime').value = '08:00';
       document.getElementById('dueTime').value = '23:59';
+      document.getElementById('notifyCount').value = '2';
+      renderNotifyHoursInputs(2, [72, 3]);
     }
 
     document.getElementById('cancelEditBtn').addEventListener('click', resetForm);
