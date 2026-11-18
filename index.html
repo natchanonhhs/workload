@@ -799,7 +799,6 @@
           notifiedHours: [],
           notified_3days: false,
           notified_due: false,
-          userStatuses: [],
           createdAt: serverTimestamp()
         });
         document.getElementById('taskTitle').value = '';
@@ -1011,24 +1010,6 @@
           return `<span class="${isSent ? 'text-emerald-600 font-medium' : ''}">ก่อน ${h} ชม.: ${isSent ? 'ส่งแล้ว' : 'รอส่ง'}</span>`;
         }).join(' • ');
 
-        const userStatuses = Array.isArray(t.userStatuses) ? t.userStatuses : [];
-        const userStatusesHtml = userStatuses.length > 0
-          ? `<div class="pt-1.5 flex flex-wrap gap-1.5 items-center">
-              <span class="text-[11px] text-gray-500">สถานะผู้เรียน:</span>
-              ${userStatuses.map(u => {
-                const isDone = u.status === 'done';
-                const avatar = (u.pictureUrl && /^https:\/\//i.test(u.pictureUrl))
-                  ? u.pictureUrl
-                  : `https://ui-avatars.com/api/?name=${encodeURIComponent(u.displayName || 'U')}&background=164277&color=fff&size=64`;
-                return `<span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border ${isDone ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-slate-100 border-slate-200 text-slate-700'}">
-                  <img src="${avatar}" alt="" class="w-3.5 h-3.5 rounded-full object-cover">
-                  <span class="font-medium">${u.displayName || 'ผู้ใช้งาน'}</span>
-                  <span>(${isDone ? 'ทำแล้ว' : 'ไม่ได้ลงวิชานี้'})</span>
-                </span>`;
-              }).join('')}
-            </div>`
-          : '';
-
         const card = document.createElement('div');
         card.className = 'border rounded-xl p-4 hover:border-[#164277] transition bg-gray-50';
         card.innerHTML = `
@@ -1053,7 +1034,6 @@
               <div class="text-[11px] text-gray-400 flex flex-wrap gap-1.5">
                 <span class="text-gray-500">แจ้งเตือนก่อนหมด (${thresholds.length} ครั้ง):</span> ${scheduleBadgesHtml}
               </div>
-              ${userStatusesHtml}
             </div>
             <div class="flex flex-col gap-1.5 shrink-0">
               <button class="test-btn text-xs bg-[#164277] hover:bg-[#10325b] text-white px-3 py-1.5 rounded-lg font-medium">ส่งทันที</button>
