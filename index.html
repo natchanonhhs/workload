@@ -46,7 +46,7 @@
       </button>
     </div>
 
-    <!-- แถบแจ้งสถานะการเชื่อมต่อ LINE -->
+    <!-- แถบแจ้งสถานะการทำงาน -->
     <div id="statusBanner" class="hidden mb-6 p-4 rounded-xl text-sm font-medium border"></div>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -347,6 +347,7 @@
     import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
     const GAS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxl8sLK6iLHqQt5yEm0lUYFUbSRBMeYwjsQZY6AK2PrEaOhdTA-lokWWvNkAWzfic6ymQ/exec";
+    const MAX_LATE_MS = 65 * 60 * 1000;
 
     const firebaseConfig = {
       apiKey: "AIzaSyC1hcjwUVhSvYLw2JU4sIQoTwI46WVHxyE",
@@ -370,6 +371,7 @@
     let pendingSendTaskId = null;
     let pendingPasswordCallback = null;
     let editingExistingNotifiedHours = [];
+    let editingExistingSkippedHours = [];
 
     const todayStr = new Date().toLocaleDateString('en-CA');
     document.getElementById('startDate').value = todayStr;
@@ -442,20 +444,17 @@
       banner.classList.remove('hidden');
     }
 
-    async function callAppsScript(payload) {
-      showBanner("loading", "กำลังตรวจสอบเงื่อนไขและส่งแจ้งเตือนเข้า LINE...");
+    // เรียก Apps Script เฉพาะเมื่อกดปุ่ม "ส่งทันที" เท่านั้น
+    async function callForceSendAppsScript(taskId) {
+      showBanner("loading", "กำลังส่งแจ้งเตือนเข้า LINE...");
       try {
         const res = await fetch(GAS_WEBHOOK_URL, {
           method: "POST",
-          body: JSON.stringify(payload)
+          body: JSON.stringify({ action: "force_send", taskId })
         });
         const data = await res.json();
         if (data.ok) {
-          if (data.sentCount > 0) {
-            showBanner("success", `ส่งแจ้งเตือนเข้า LINE สำเร็จแล้ว (${data.sentCount} รายการ)`);
-          } else {
-            showBanner("success", "บันทึกสำเร็จ (ไม่มีการส่งซ้ำ ระบบจะแจ้งเตือนในรอบถัดไปตามกำหนด)");
-          }
+          showBanner("success", `ส่งแจ้งเตือนเข้า LINE สำเร็จแล้ว (${data.sentCount} รายการ)`);
         } else {
           showBanner("error", "แจ้งเตือนขัดข้อง: " + (data.errors || []).join(" | "));
         }
@@ -485,7 +484,7 @@
       const targetId = pendingSendTaskId;
       closeConfirmSendModal();
       if (targetId) {
-        await callAppsScript({ action: "force_send", taskId: targetId });
+        await callForceSendAppsScript(targetId);
       }
     });
 
@@ -734,7 +733,7 @@
       });
     }
 
-    // บันทึก / แก้ไข / แสดงรายการงานสด
+    // บันทึก / แก้ไขข้อมูลงาน (ไม่ส่งข้อความอัตโนมัติในตอนบันทึกหรือแก้ไข รอส่งเฉพาะเมื่อถึงรอบกำหนดเวลาจริงเท่านั้น)
     document.getElementById('taskForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const selectedBoxes = Array.from(document.querySelectorAll('input[name="targetGroups"]:checked'));
@@ -759,6 +758,8 @@
       const notifyHoursBefore = Array.from(new Set(rawHours)).sort((a, b) => b - a);
       const dueDateVal = document.getElementById('dueDate').value;
       const dueTimeVal = document.getElementById('dueTime').value;
+      const dueMs = toBangkokTimestamp(dueDateVal, dueTimeVal || "23:59");
+      const nowMs = Date.now();
 
       const editId = document.getElementById('editDocId').value;
       const taskData = {
@@ -780,39 +781,63 @@
       };
 
       if (editId) {
-        // คงรอบที่เคยแจ้งเตือนไปแล้ว และทำเครื่องหมายรอบที่ถึงเวลาแล้ว ณ ตอนแก้ไข เพื่อไม่ให้แจ้งเตือนซ้ำและรอแจ้งเตือนในรอบถัดไป
-        const dueMs = toBangkokTimestamp(dueDateVal, dueTimeVal || "23:59");
-        const hoursUntilDue = (dueMs - Date.now()) / (60 * 60 * 1000);
-        const passedThresholdsOnEdit = notifyHoursBefore.filter((h) => hoursUntilDue <= h);
-        const preservedNotified = Array.from(
-          new Set([...editingExistingNotifiedHours, ...passedThresholdsOnEdit])
-        ).sort((a, b) => b - a);
+        // คงรายการรอบที่ "ส่งแล้ว" ไว้ไม่ให้ส่งซ้ำ และแยกเฉพาะรอบที่เลยเวลาไปแล้วไว้ใน skippedHours (ไม่มั่วสถานะเป็นส่งแล้ว)
+        const preservedNotified = notifyHoursBefore
+          .filter((h) => editingExistingNotifiedHours.some((sentH) => Math.abs(sentH - h) < 0.0001))
+          .sort((a, b) => b - a);
+
+        const updatedSkipped = notifyHoursBefore
+          .filter((h) => {
+            if (preservedNotified.some((sentH) => Math.abs(sentH - h) < 0.0001)) return false;
+            const wasAlreadySkipped = editingExistingSkippedHours.some((skipH) => Math.abs(skipH - h) < 0.0001);
+            const triggerTimeMs = dueMs - (h * 60 * 60 * 1000);
+            const isPastWindow = (nowMs - triggerTimeMs) > MAX_LATE_MS;
+            return wasAlreadySkipped || isPastWindow;
+          })
+          .sort((a, b) => b - a);
 
         const allDone = notifyHoursBefore.every((h) =>
-          preservedNotified.some((sentH) => Math.abs(sentH - h) < 0.0001)
+          preservedNotified.some((sentH) => Math.abs(sentH - h) < 0.0001) ||
+          updatedSkipped.some((skipH) => Math.abs(skipH - h) < 0.0001)
         );
 
         await updateDoc(doc(db, "tasks", editId), {
           ...taskData,
           notifiedHours: preservedNotified,
+          skippedHours: updatedSkipped,
           notified_3days: preservedNotified.length > 0,
           notified_due: allDone
         });
+
         resetForm();
+        showBanner("success", "อัปเดตข้อมูลงานเรียบร้อยแล้ว (ไม่ส่งข้อความซ้ำ ระบบจะแจ้งเตือนเฉพาะรอบถัดไปที่ถึงกำหนด)");
       } else {
+        // เพิ่มงานใหม่: ยังไม่มีการส่งข้อความ (notifiedHours = []) และข้ามรอบที่เลยเวลาไปแล้วก่อนเพิ่มงาน (skippedHours)
+        const initialSkipped = notifyHoursBefore
+          .filter((h) => {
+            const triggerTimeMs = dueMs - (h * 60 * 60 * 1000);
+            return (nowMs - triggerTimeMs) > MAX_LATE_MS;
+          })
+          .sort((a, b) => b - a);
+
+        const allDone = notifyHoursBefore.every((h) =>
+          initialSkipped.some((skipH) => Math.abs(skipH - h) < 0.0001)
+        );
+
         await addDoc(collection(db, "tasks"), {
           ...taskData,
           notifiedHours: [],
+          skippedHours: initialSkipped,
           notified_3days: false,
-          notified_due: false,
+          notified_due: allDone,
           createdAt: serverTimestamp()
         });
+
         document.getElementById('taskTitle').value = '';
         document.getElementById('description').value = '';
         document.getElementById('link').value = '';
+        showBanner("success", "บันทึกข้อมูลงานเรียบร้อยแล้ว (ยังไม่ส่งข้อความจนกว่าจะถึงรอบเวลาที่กำหนด)");
       }
-
-      await callAppsScript({ action: "instant_check" });
     });
 
     function toBangkokTimestamp(dateStr, timeStr) {
@@ -823,13 +848,22 @@
       return Number.isNaN(parsed) ? Number.MAX_SAFE_INTEGER : parsed;
     }
 
+    // คำนวณสถานะของแต่ละรอบอย่างแม่นยำ: ส่งแล้ว (notified) / เลยรอบเวลาแล้ว (skipped) / รอส่งตามกำหนด (remaining)
     function getTaskScheduleInfo(t) {
+      const nowMs = Date.now();
+      const dueMs = toBangkokTimestamp(t.dueDate, t.dueTime || "23:59");
+      const isExpired = dueMs <= nowMs;
+
       let thresholds = Array.isArray(t.notifyHoursBefore) && t.notifyHoursBefore.length > 0
         ? t.notifyHoursBefore.map(Number).filter(n => !Number.isNaN(n) && n > 0)
         : [72, 3];
 
       let notified = Array.isArray(t.notifiedHours)
         ? t.notifiedHours.map(Number).filter(n => !Number.isNaN(n) && n > 0)
+        : [];
+
+      let storedSkipped = Array.isArray(t.skippedHours)
+        ? t.skippedHours.map(Number).filter(n => !Number.isNaN(n) && n > 0)
         : [];
 
       if (!Array.isArray(t.notifyHoursBefore) || t.notifyHoursBefore.length === 0) {
@@ -839,9 +873,22 @@
       }
 
       thresholds = Array.from(new Set(thresholds)).sort((a, b) => b - a);
-      const remaining = thresholds.filter(h => !notified.some(sentH => Math.abs(sentH - h) < 0.0001));
 
-      return { thresholds, notified, remaining };
+      const skipped = thresholds.filter((h) => {
+        if (notified.some((sentH) => Math.abs(sentH - h) < 0.0001)) return false;
+        if (storedSkipped.some((skipH) => Math.abs(skipH - h) < 0.0001)) return true;
+        if (isExpired) return true;
+        const triggerTimeMs = dueMs - (h * 60 * 60 * 1000);
+        return (nowMs - triggerTimeMs) > MAX_LATE_MS;
+      });
+
+      const remaining = thresholds.filter((h) => {
+        const isSent = notified.some((sentH) => Math.abs(sentH - h) < 0.0001);
+        const isSkip = skipped.some((skipH) => Math.abs(skipH - h) < 0.0001);
+        return !isExpired && !isSent && !isSkip;
+      });
+
+      return { thresholds, notified, skipped, remaining };
     }
 
     function classifyTask(t) {
@@ -1010,10 +1057,17 @@
           ? t.targetGroupNames.map(name => `<span class="text-[11px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">${name}</span>`).join(' ')
           : '<span class="text-[11px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">ยังไม่ระบุกลุ่ม</span>';
 
-        const { thresholds, notified } = getTaskScheduleInfo(t);
+        const { thresholds, notified, skipped } = getTaskScheduleInfo(t);
         const scheduleBadgesHtml = thresholds.map((h) => {
           const isSent = notified.some(sentH => Math.abs(sentH - h) < 0.0001);
-          return `<span class="${isSent ? 'text-emerald-600 font-medium' : ''}">ก่อน ${h} ชม.: ${isSent ? 'ส่งแล้ว' : 'รอส่ง'}</span>`;
+          const isSkipped = skipped.some(skipH => Math.abs(skipH - h) < 0.0001);
+          if (isSent) {
+            return `<span class="text-emerald-600 font-semibold">ก่อน ${h} ชม.: ส่งแล้ว</span>`;
+          }
+          if (isSkipped) {
+            return `<span class="text-gray-400">ก่อน ${h} ชม.: เลยรอบเวลาแล้ว</span>`;
+          }
+          return `<span class="text-[#164277] font-medium">ก่อน ${h} ชม.: รอส่งตามกำหนด</span>`;
         }).join(' • ');
 
         const card = document.createElement('div');
@@ -1054,8 +1108,9 @@
         };
 
         card.querySelector('.edit-btn').onclick = () => {
-          const { thresholds, notified } = getTaskScheduleInfo(t);
+          const { thresholds, notified, skipped } = getTaskScheduleInfo(t);
           editingExistingNotifiedHours = [...notified];
+          editingExistingSkippedHours = [...skipped];
 
           document.getElementById('editDocId').value = id;
           document.getElementById('formTitle').textContent = 'แก้ไขรายการงาน';
@@ -1100,6 +1155,7 @@
 
     function resetForm() {
       editingExistingNotifiedHours = [];
+      editingExistingSkippedHours = [];
       document.getElementById('editDocId').value = '';
       document.getElementById('formTitle').textContent = '+ เพิ่มรายการงานใหม่';
       document.getElementById('submitBtn').textContent = 'บันทึกข้อมูลงาน';
