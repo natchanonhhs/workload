@@ -3,341 +3,746 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบจัดการแจ้งเตือนงานเข้า LINE</title>
+  <title>ระบบจัดการแจ้งเตือนงานเข้า LINE — Workload Notification</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Noto+Sans+Thai:wght@400;500;600&family=Noto+Serif+Thai:wght@600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Prompt', sans-serif; background-color: #f3f4f6; }
+    :root {
+      --paper: #EDEBE6;
+      --sheet: #F4F2ED;
+      --ink: #141414;
+      --muted: #6D6A63;
+      --cobalt: #1F3FB0;
+      --cobalt-dark: #162E85;
+      --vermilion: #B8332A;
+      --emerald-ink: #1B5E3A;
+      --rule: rgba(20, 20, 20, .9);
+      --rule-mid: rgba(20, 20, 20, .35);
+      --rule-soft: rgba(20, 20, 20, .16);
+      --ease: cubic-bezier(.2, .8, .2, 1);
+      --ease-sheet: cubic-bezier(.76, 0, .18, 1);
+      --font-sans: "Inter Tight", "Noto Sans Thai", system-ui, -apple-system, sans-serif;
+      --font-serif: "Newsreader", "Noto Serif Thai", Georgia, serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--paper);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    @media (pointer: fine) {
+      html, body, button, a, input, select, textarea, label {
+        cursor: none !important;
+      }
+    }
+
+    /* เกรนกระดาษทั้งหน้าจอแบบ Multiply (ตามต้นแบบ Leon Vasari) */
+    .paper-grain {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      pointer-events: none;
+      mix-blend-mode: multiply;
+      opacity: .55;
+      background-repeat: repeat;
+      background-size: 220px 220px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 .45  0 0 0 0 .42  0 0 0 0 .38  0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+    }
+
+    /* ระบบป้ายกำกับและกรอบแบบแค็ตตาล็อกสิ่งพิมพ์ */
+    .lbl {
+      font-family: var(--font-sans);
+      font-weight: 600;
+      font-size: 10.5px;
+      line-height: 1.2;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    .box-tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 23px;
+      padding: 0 9px;
+      border: 1px solid var(--rule);
+      background-color: transparent;
+      color: var(--ink);
+      transition: background-color .35s var(--ease), color .35s var(--ease), border-color .35s var(--ease);
+    }
+
+    .box-tag:hover {
+      background-color: var(--ink);
+      color: var(--sheet);
+    }
+
+    .font-editorial {
+      font-family: var(--font-serif);
+    }
+
+    /* แผ่นกระดาษหลัก */
+    .paper-panel {
+      background-color: var(--sheet);
+      border: 1px solid var(--rule);
+      box-shadow: 0 22px 48px -32px rgba(20, 16, 10, .35);
+    }
+
+    .paper-subpanel {
+      background-color: var(--paper);
+      border: 1px solid var(--rule-mid);
+    }
+
+    /* ช่องกรอกข้อมูลสไตล์สิ่งพิมพ์ */
+    .paper-input {
+      background-color: var(--sheet);
+      border: 1px solid var(--rule-mid);
+      color: var(--ink);
+      border-radius: 0;
+      transition: border-color .25s var(--ease), background-color .25s var(--ease);
+    }
+
+    .paper-input:focus {
+      outline: none;
+      border-color: var(--cobalt);
+      background-color: #FAF9F6;
+    }
+
+    .paper-input::placeholder {
+      color: var(--muted);
+    }
+
+    /* ปุ่มหลักสีน้ำเงิน Cobalt */
+    .btn-cobalt {
+      background-color: var(--cobalt);
+      color: #F4F2ED;
+      border: 1px solid var(--cobalt);
+      transition: background-color .3s var(--ease), transform .25s var(--ease);
+    }
+
+    .btn-cobalt:hover {
+      background-color: var(--cobalt-dark);
+      border-color: var(--cobalt-dark);
+    }
+
+    .btn-paper {
+      background-color: var(--sheet);
+      color: var(--ink);
+      border: 1px solid var(--rule);
+      transition: background-color .3s var(--ease), color .3s var(--ease);
+    }
+
+    .btn-paper:hover {
+      background-color: var(--ink);
+      color: var(--sheet);
+    }
+
+    /* แถบแท็บหลักพร้อมบล็อกสีน้ำเงิน Cobalt เลื่อนสไลด์ */
+    .tabs-shell {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      border-top: 1px solid var(--rule);
+      border-left: 1px solid var(--rule);
+      background-color: var(--sheet);
+    }
+
+    @media (max-width: 639px) {
+      .tabs-shell {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .tab-cobalt-indicator {
+      position: absolute;
+      top: 0;
+      left: 0;
+      background-color: var(--cobalt);
+      pointer-events: none;
+      z-index: 1;
+      transition: transform .6s var(--ease), width .6s var(--ease), height .6s var(--ease);
+    }
+
+    .tab-btn {
+      position: relative;
+      z-index: 2;
+      background: transparent;
+      border-right: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+      padding: 10px 12px;
+      text-align: left;
+      transition: color .45s var(--ease);
+    }
+
+    /* การ์ดรายการงาน */
+    .task-card {
+      background-color: var(--sheet);
+      border: 1px solid var(--rule-mid);
+      transition: border-color .35s var(--ease), transform .35s var(--ease), box-shadow .35s var(--ease);
+    }
+
+    .task-card:hover {
+      border-color: var(--cobalt);
+      transform: translateY(-2px);
+      box-shadow: 0 18px 36px -26px rgba(20, 16, 10, .4);
+    }
+
+    /* เคอร์เซอร์วงแหวนแบบ Leon Vasari */
+    .custom-cursor {
+      display: none;
+    }
+
+    @media (pointer: fine) {
+      .custom-cursor {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 58px;
+        height: 58px;
+        margin-left: -29px;
+        margin-top: -29px;
+        z-index: 100;
+        pointer-events: none;
+        will-change: transform;
+      }
+
+      .cursor-ring {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 1.5px solid var(--ink);
+        background-color: transparent;
+        transition: transform .5s var(--ease), background-color .4s var(--ease), border-color .4s var(--ease);
+      }
+
+      .cursor-dot {
+        position: relative;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: var(--ink);
+        transition: transform .4s var(--ease);
+      }
+
+      .cursor-label {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-sans);
+        font-weight: 600;
+        font-size: 9px;
+        line-height: 1.2;
+        letter-spacing: .1em;
+        color: #FFFFFF;
+        text-align: center;
+        transform: scale(0);
+        transition: transform .45s var(--ease);
+      }
+
+      .custom-cursor.spine .cursor-ring {
+        transform: scale(.72);
+      }
+
+      .custom-cursor.btn .cursor-ring {
+        transform: scale(.55);
+      }
+
+      .custom-cursor.btn .cursor-dot {
+        transform: scale(0);
+      }
+
+      .custom-cursor.open .cursor-ring {
+        transform: scale(1.45);
+        background-color: var(--cobalt);
+        border-color: var(--cobalt);
+      }
+
+      .custom-cursor.open .cursor-dot {
+        transform: scale(0);
+      }
+
+      .custom-cursor.open .cursor-label {
+        transform: scale(1);
+      }
+    }
+
+    /* Scrollbar เรียบแบบกระดาษ */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--paper);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(20, 20, 20, .35);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--cobalt);
+    }
   </style>
 </head>
-<body class="text-gray-800">
+<body>
+
+  <!-- เลเยอร์เกรนกระดาษ -->
+  <div class="paper-grain" aria-hidden="true"></div>
+
+  <!-- เคอร์เซอร์วงแหวน -->
+  <div id="customCursor" class="custom-cursor" aria-hidden="true">
+    <div class="cursor-ring"></div>
+    <div class="cursor-dot"></div>
+    <div class="cursor-label">
+      <span>SEND</span>
+      <span>ส่งทันที</span>
+    </div>
+  </div>
 
   <!-- หน้าจอ Login -->
-  <div id="loginSection" class="min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white p-8 rounded-2xl shadow-md w-full max-w-md">
-      <h1 class="text-2xl font-semibold text-center text-[#164277] mb-1">Workload Notification</h1>
-      <p class="text-xs text-gray-400 text-center mb-6">เข้าสู่ระบบหลังบ้านสำหรับจัดการแจ้งเตือนงาน</p>
-      <form id="loginForm" class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium mb-1">อีเมลแอดมิน</label>
-          <input type="email" id="loginEmail" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#164277] outline-none">
+  <div id="loginSection" class="min-h-screen flex flex-col justify-between p-6 md:p-8 relative z-10">
+    <header class="flex justify-between items-center">
+      <span class="box-tag lbl">ARCHIVE / ระบบแจ้งเตือน</span>
+      <span class="lbl hidden sm:inline" style="color: var(--muted);">ADMIN ACCESS ONLY</span>
+    </header>
+
+    <div class="w-full max-w-md mx-auto my-auto">
+      <div class="paper-panel relative">
+        <!-- แถบเรขาคณิตสีน้ำเงินด้านบน -->
+        <div class="flex h-[5px] w-full">
+          <div class="flex-[5] bg-[#1F3FB0]"></div>
+          <div class="flex-[3] bg-[#3B63D6]"></div>
+          <div class="flex-[2] bg-[#8AA6F5]"></div>
         </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">รหัสผ่าน</label>
-          <input type="password" id="loginPassword" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#164277] outline-none">
+
+        <div class="p-8 md:p-10">
+          <div class="text-center mb-8">
+            <div class="font-editorial font-bold text-[24px] tracking-[.03em] text-[#1F3FB0] leading-tight">
+              ระบบจัดการภาระงาน
+            </div>
+            <div class="lbl text-[9px] tracking-[.32em] pl-[.32em] text-[#1F3FB0] mt-1.5">
+              WORKLOAD NOTIFICATION
+            </div>
+            <div class="w-10 h-[1px] bg-[#141414]/30 mx-auto my-4"></div>
+            <p class="text-xs text-[#6D6A63]">เข้าสู่ระบบหลังบ้านสำหรับจัดการแจ้งเตือนงานเข้า LINE</p>
+          </div>
+
+          <form id="loginForm" class="space-y-4">
+            <div>
+              <label class="block lbl mb-1.5 text-[#141414]">อีเมลแอดมิน / ADMIN EMAIL</label>
+              <input type="email" id="loginEmail" required placeholder="admin@example.com" class="paper-input w-full px-3.5 py-2.5 text-sm">
+            </div>
+            <div>
+              <label class="block lbl mb-1.5 text-[#141414]">รหัสผ่าน / PASSWORD</label>
+              <input type="password" id="loginPassword" required placeholder="••••••••" class="paper-input w-full px-3.5 py-2.5 text-sm">
+            </div>
+            <div class="pt-2">
+              <button type="submit" class="btn-cobalt w-full py-3 lbl tracking-[.14em]">
+                เข้าสู่ระบบ / SIGN IN
+              </button>
+            </div>
+          </form>
+          <p id="loginError" class="text-[#B8332A] text-xs font-medium text-center mt-4 hidden"></p>
         </div>
-        <button type="submit" class="w-full bg-[#164277] hover:bg-[#10325b] text-white font-medium py-2.5 rounded-lg transition">
-          เข้าสู่ระบบ
-        </button>
-      </form>
-      <p id="loginError" class="text-red-500 text-sm text-center mt-3 hidden"></p>
+      </div>
     </div>
+
+    <footer class="flex justify-between items-center pt-4">
+      <span class="lbl text-[#6D6A63]">© WORKLOAD NOTIFICATION SYSTEM</span>
+      <span class="lbl text-[#6D6A63]">LINE MESSAGING API</span>
+    </footer>
   </div>
 
   <!-- หน้าจอจัดการข้อมูลหลัก -->
-  <div id="appSection" class="hidden max-w-6xl mx-auto p-4 md:p-8">
-    <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
-      <div>
-        <h1 class="text-2xl font-semibold text-gray-900">ระบบจัดการงาน & แจ้งเตือน LINE</h1>
-        <p class="text-sm text-gray-500">แจ้งเตือนหลักก่อนหมดเขต 2 ครั้ง (ก่อน 3 วัน และก่อน 3 ชม.) หรือปรับตั้งเองได้ + ส่งแบบแมนนวลได้ทันที</p>
+  <div id="appSection" class="hidden min-h-screen flex flex-col relative z-10">
+    <!-- Top Bar 3 คอลัมน์สไตล์แค็ตตาล็อกภาพยนตร์ -->
+    <header class="w-full h-[64px] md:h-[84px] px-4 md:px-8 border-b border-[#141414]/20 grid grid-cols-[1fr_auto_1fr] items-center bg-[#EDEBE6]/90 backdrop-blur-[2px] sticky top-0 z-30">
+      <div class="flex items-center justify-start">
+        <span class="box-tag lbl text-[9px] md:text-[10.5px]">INDEX / หลังบ้าน</span>
       </div>
-      <button id="logoutBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm">
-        ออกจากระบบ
-      </button>
-    </div>
 
-    <!-- แถบแจ้งสถานะการทำงาน -->
-    <div id="statusBanner" class="hidden mb-6 p-4 rounded-xl text-sm font-medium border"></div>
+      <div class="flex flex-col items-center justify-center text-center select-none">
+        <span class="font-editorial font-bold text-[17px] md:text-[22px] leading-none tracking-[.04em] text-[#1F3FB0]">
+          ระบบจัดการงาน &amp; แจ้งเตือน
+        </span>
+        <span class="lbl text-[7.5px] md:text-[9px] leading-none tracking-[.32em] pl-[.32em] text-[#1F3FB0] mt-[5px]">
+          WORKLOAD NOTIFICATION
+        </span>
+      </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-      <!-- คอลัมน์ซ้าย: ฟอร์มเพิ่มงาน + ตั้งค่ากลุ่ม LINE -->
-      <div class="lg:col-span-5 space-y-6">
+      <div class="flex items-center justify-end gap-3">
+        <span class="lbl text-[#6D6A63] hidden lg:inline">AUTO 72H &amp; 3H</span>
+        <button id="logoutBtn" class="box-tag lbl text-[9px] md:text-[10.5px]">
+          ออกจากระบบ / LOGOUT
+        </button>
+      </div>
+    </header>
 
-        <div class="bg-white p-6 rounded-2xl shadow-sm">
-          <h2 id="formTitle" class="text-lg font-semibold text-[#164277] mb-4">+ เพิ่มรายการงานใหม่</h2>
+    <main class="max-w-6xl w-full mx-auto px-4 md:px-8 py-6 md:py-8 flex-1">
+      <!-- คำอธิบายย่อยใต้ Top bar -->
+      <div class="flex flex-wrap justify-between items-baseline gap-2 pb-5 mb-6 border-b border-[#141414]/20">
+        <p class="font-editorial italic text-sm md:text-base text-[#6D6A63]">
+          แจ้งเตือนหลักก่อนหมดเขต 2 ครั้ง (ก่อน 3 วัน และก่อน 3 ชม.) หรือปรับตั้งเองได้ พร้อมส่งแบบแมนนวลได้ทันที
+        </p>
+        <span class="lbl text-[#1F3FB0]">SCHEDULED DISPATCH</span>
+      </div>
 
-          <div class="mb-4 p-3 bg-blue-50/70 rounded-xl border border-blue-100">
-            <div class="flex justify-between items-center mb-1.5">
-              <span class="text-xs font-medium text-[#164277]">เลือกวิชาด่วน (คลิกเพื่อกรอกอัตโนมัติ):</span>
-              <button type="button" id="savePresetBtn" class="text-xs text-[#164277] font-medium hover:underline">+ จำวิชานี้ไว้</button>
+      <!-- แถบแจ้งสถานะการทำงาน -->
+      <div id="statusBanner" class="hidden mb-6 p-4 text-xs md:text-sm font-medium border border-[#141414]"></div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-start">
+        <!-- คอลัมน์ซ้าย: ฟอร์มเพิ่มงาน + ตั้งค่ากลุ่ม LINE -->
+        <div class="lg:col-span-5 space-y-6">
+
+          <div class="paper-panel">
+            <!-- แถบสีน้ำเงินเรขาคณิตด้านบนการ์ด -->
+            <div class="flex h-[5px] w-full">
+              <div class="flex-[5] bg-[#1F3FB0]"></div>
+              <div class="flex-[3] bg-[#3B63D6]"></div>
+              <div class="flex-[2] bg-[#8AA6F5]"></div>
             </div>
-            <div id="coursePresets" class="flex flex-wrap gap-1.5">
-              <span class="text-xs text-gray-400">ยังไม่มีวิชาที่บันทึกไว้</span>
+
+            <div class="p-5 md:p-6">
+              <div class="flex items-center justify-between gap-2 pb-3 mb-4 border-b border-[#141414]/20">
+                <h2 id="formTitle" class="font-editorial text-xl md:text-2xl font-normal text-[#141414] tracking-[-0.01em]">
+                  + เพิ่มรายการงานใหม่
+                </h2>
+                <span class="lbl text-[#1F3FB0]">ENTRY FORM</span>
+              </div>
+
+              <!-- กล่องเลือกวิชาด่วน -->
+              <div class="mb-4 p-3 paper-subpanel">
+                <div class="flex justify-between items-center mb-2">
+                  <span class="lbl text-[#141414]">เลือกวิชา</span>
+                  <button type="button" id="savePresetBtn" class="lbl text-[#1F3FB0] hover:underline">+ จำวิชานี้ไว้</button>
+                </div>
+                <div id="coursePresets" class="flex flex-wrap gap-1.5">
+                  <span class="text-xs text-[#6D6A63]">ยังไม่มีวิชาที่บันทึกไว้</span>
+                </div>
+              </div>
+
+              <form id="taskForm" class="space-y-3.5">
+                <input type="hidden" id="editDocId">
+                
+                <div class="grid grid-cols-3 gap-2.5">
+                  <div class="col-span-1">
+                    <label class="block lbl mb-1">รหัสวิชา *</label>
+                    <input type="text" id="courseCode" placeholder="308-242" required class="paper-input w-full px-3 py-2 text-sm">
+                  </div>
+                  <div class="col-span-2">
+                    <label class="block lbl mb-1">ชื่อวิชา *</label>
+                    <input type="text" id="courseName" placeholder="Operating Systems" required class="paper-input w-full px-3 py-2 text-sm">
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2.5">
+                  <div>
+                    <label class="block lbl mb-1">ประเภทงาน / หมวดหมู่</label>
+                    <select id="taskType" class="paper-input w-full px-3 py-2 text-sm">
+                      <option value="งานเดี่ยว">งานเดี่ยว</option>
+                      <option value="งานกลุ่ม">งานกลุ่ม</option>
+                      <option value="Lab / ปฏิบัติการ">Lab / ปฏิบัติการ</option>
+                      <option value="Quiz / สอบ">Quiz / สอบ</option>
+                      <option value="โปรเจกต์">โปรเจกต์</option>
+                      <option value="ใบงาน">ใบงาน</option>
+                      <option value="ภาพ">ภาพ</option>
+                      <option value="วีดิโอ">วีดิโอ</option>
+                      <option value="เช็คชื่อ">เช็คชื่อ</option>
+                      <option value="เรียน">เรียน</option>
+                      <option value="เรียนชดเชย">เรียนชดเชย</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block lbl mb-1">สถานะ</label>
+                    <select id="taskStatus" class="paper-input w-full px-3 py-2 text-sm">
+                      <option value="Active">เปิดแจ้งเตือน (Active)</option>
+                      <option value="Cancelled">ยกเลิกงาน</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block lbl mb-1">ชื่องาน / หัวข้อ *</label>
+                  <input type="text" id="taskTitle" placeholder="เช่น Lab 02: Linux Installation" required class="paper-input w-full px-3 py-2 text-sm">
+                </div>
+
+                <div>
+                  <label class="block lbl mb-1">รายละเอียดงาน</label>
+                  <textarea id="description" rows="2" placeholder="ระบุสิ่งที่ต้องทำ หรือรูปแบบไฟล์ที่ส่ง..." class="paper-input w-full px-3 py-2 text-sm"></textarea>
+                </div>
+
+                <div>
+                  <label class="block lbl mb-1">ลิงก์ส่งงาน / โจทย์</label>
+                  <input type="text" id="link" placeholder="https://lms.psu.ac.th/..." class="paper-input w-full px-3 py-2 text-sm">
+                </div>
+
+                <div class="grid grid-cols-2 gap-2.5">
+                  <div>
+                    <label class="block lbl mb-1">วันเริ่มงาน *</label>
+                    <input type="date" id="startDate" required class="paper-input w-full px-3 py-2 text-sm">
+                  </div>
+                  <div>
+                    <label class="block lbl mb-1">เวลาเริ่มงาน *</label>
+                    <input type="time" id="startTime" value="08:00" required class="paper-input w-full px-3 py-2 text-sm">
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2.5">
+                  <div>
+                    <label class="block lbl mb-1">วันสิ้นสุด (ส่ง) *</label>
+                    <input type="date" id="dueDate" required class="paper-input w-full px-3 py-2 text-sm">
+                  </div>
+                  <div>
+                    <label class="block lbl mb-1">เวลาที่สิ้นสุด *</label>
+                    <input type="time" id="dueTime" value="23:59" required class="paper-input w-full px-3 py-2 text-sm">
+                  </div>
+                </div>
+
+                <!-- ส่วนตั้งค่าจำนวนรอบและชั่วโมงที่ต้องการให้แจ้งเตือนก่อนหมดเขต -->
+                <div class="p-3 paper-subpanel space-y-2">
+                  <div class="flex justify-between items-center gap-2">
+                    <span class="lbl text-[#1F3FB0]">แจ้งเตือนก่อนหมดเขต (<span id="notifyCountLabel">2</span> รอบ)</span>
+                    <button type="button" id="addNotifyRoundBtn" class="box-tag lbl bg-[#F4F2ED]">
+                      + เพิ่มรอบ
+                    </button>
+                  </div>
+                  <div id="notifyHoursContainer" class="space-y-1.5"></div>
+                  <p class="text-[11px] text-[#6D6A63]">ค่าเริ่มต้น 2 รอบ: ก่อนหมดเขต 72 ชม. (3 วัน) และ 3 ชม. (กดลบให้เหลือ 1 รอบ หรือเพิ่มรอบได้)</p>
+                </div>
+
+                <!-- เลือกกลุ่ม LINE เป้าหมาย -->
+                <div class="p-3 paper-subpanel">
+                  <div class="flex justify-between items-center mb-2">
+                    <label class="block lbl text-[#141414]">เลือกกลุ่ม LINE ที่แจ้งเตือน</label>
+                    <button type="button" id="selectAllGroupsBtn" class="lbl text-[#1F3FB0] hover:underline">เลือกทั้งหมด</button>
+                  </div>
+                  <div id="groupCheckboxes" class="space-y-1.5">
+                    <p class="text-xs text-[#6D6A63]">ยังไม่มีกลุ่ม</p>
+                  </div>
+                </div>
+
+                <div class="pt-2 flex gap-2">
+                  <button type="submit" id="submitBtn" class="btn-cobalt flex-1 py-2.5 lbl tracking-[.12em]">
+                    บันทึกข้อมูลงาน
+                  </button>
+                  <button type="button" id="cancelEditBtn" class="hidden btn-paper px-4 py-2.5 lbl">
+                    ยกเลิก
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
 
-          <form id="taskForm" class="space-y-3">
-            <input type="hidden" id="editDocId">
-            
-            <div class="grid grid-cols-3 gap-2">
-              <div class="col-span-1">
-                <label class="block text-xs font-medium mb-1">รหัสวิชา *</label>
-                <input type="text" id="courseCode" placeholder="308-242" required class="w-full px-3 py-2 border rounded-lg text-sm">
+          <!-- กล่องจัดการรายชื่อกลุ่ม LINE -->
+          <div class="paper-panel">
+            <div class="p-5 md:p-6">
+              <div class="flex items-center justify-between gap-2 pb-2.5 mb-2 border-b border-[#141414]/20">
+                <h2 class="font-editorial text-lg md:text-xl text-[#141414]">ตั้งค่ารายชื่อกลุ่ม / แชตทดสอบ LINE</h2>
+                <span class="lbl text-[#1B5E3A]">CHANNELS</span>
               </div>
-              <div class="col-span-2">
-                <label class="block text-xs font-medium mb-1">ชื่อวิชา *</label>
-                <input type="text" id="courseName" placeholder="Operating Systems" required class="w-full px-3 py-2 border rounded-lg text-sm">
-              </div>
+              <p class="text-xs text-[#6D6A63] mb-3.5">ใส่ได้ทั้ง Group ID (ขึ้นต้นด้วย C...) หรือ User ID ส่วนตัว (ขึ้นต้นด้วย U...)</p>
+              <form id="groupForm" class="space-y-2.5 mb-4">
+                <input type="text" id="newGroupName" placeholder="ชื่อเรียก เช่น ส่วนตัว / กลุ่ม Sec 01" required class="paper-input w-full px-3 py-2 text-sm">
+                <div class="flex gap-2">
+                  <input type="text" id="newGroupId" placeholder="วาง ID (C... หรือ U...)" required class="paper-input flex-1 px-3 py-2 text-sm">
+                  <button type="submit" class="btn-cobalt px-4 py-2 lbl shrink-0">
+                    + เพิ่ม
+                  </button>
+                </div>
+              </form>
+              <div id="savedGroupsList" class="space-y-2 text-sm"></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- คอลัมน์ขวา: รายการงานทั้งหมดพร้อม 4 แท็บหลัก + แท็บย่อยตามรหัสวิชา + ตัวกรอง/เรียงลำดับ -->
+        <div class="lg:col-span-7">
+          <div class="paper-panel">
+            <!-- แถบสีน้ำเงินเรขาคณิตด้านบนการ์ด -->
+            <div class="flex h-[5px] w-full">
+              <div class="flex-[2] bg-[#8AA6F5]"></div>
+              <div class="flex-[3] bg-[#3B63D6]"></div>
+              <div class="flex-[5] bg-[#1F3FB0]"></div>
             </div>
 
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <label class="block text-xs font-medium mb-1">ประเภทงาน / หมวดหมู่</label>
-                <select id="taskType" class="w-full px-3 py-2 border rounded-lg text-sm bg-white">
-                  <option value="งานเดี่ยว">งานเดี่ยว</option>
-                  <option value="งานกลุ่ม">งานกลุ่ม</option>
-                  <option value="Lab / ปฏิบัติการ">Lab / ปฏิบัติการ</option>
-                  <option value="Quiz / สอบ">Quiz / สอบ</option>
-                  <option value="โปรเจกต์">โปรเจกต์</option>
-                  <option value="ใบงาน">ใบงาน</option>
-                  <option value="ภาพ">ภาพ</option>
-                  <option value="วีดิโอ">วีดิโอ</option>
-                  <option value="เช็คชื่อ">เช็คชื่อ</option>
-                  <option value="เรียน">เรียน</option>
-                  <option value="เรียนชดเชย">เรียนชดเชย</option>
-                </select>
+            <div class="p-5 md:p-6">
+              <div class="flex flex-wrap justify-between items-center gap-2 pb-3 mb-4 border-b border-[#141414]/20">
+                <h2 class="font-editorial text-xl md:text-2xl font-normal text-[#141414] tracking-[-0.01em]">
+                  รายการงานในระบบ
+                </h2>
+                <span id="taskCount" class="box-tag lbl bg-[#EDEBE6]">0 รายการ</span>
               </div>
-              <div>
-                <label class="block text-xs font-medium mb-1">สถานะ</label>
-                <select id="taskStatus" class="w-full px-3 py-2 border rounded-lg text-sm bg-white">
-                  <option value="Active">เปิดแจ้งเตือน (Active)</option>
-                  <option value="Cancelled">ยกเลิกงาน</option>
-                </select>
-              </div>
-            </div>
 
-            <div>
-              <label class="block text-xs font-medium mb-1">ชื่องาน / หัวข้อ *</label>
-              <input type="text" id="taskTitle" placeholder="เช่น Lab 02: Linux Installation" required class="w-full px-3 py-2 border rounded-lg text-sm">
-            </div>
+              <!-- แถบเลือก 4 แท็บหลักพร้อมบล็อกสีน้ำเงิน Cobalt เลื่อนสไลด์ -->
+              <div id="taskTabs" class="tabs-shell mb-4">
+                <div id="tabCobaltIndicator" class="tab-cobalt-indicator" aria-hidden="true"></div>
 
-            <div>
-              <label class="block text-xs font-medium mb-1">รายละเอียดงาน</label>
-              <textarea id="description" rows="2" placeholder="ระบุสิ่งที่ต้องทำ หรือรูปแบบไฟล์ที่ส่ง..." class="w-full px-3 py-2 border rounded-lg text-sm"></textarea>
-            </div>
-
-            <div>
-              <label class="block text-xs font-medium mb-1">ลิงก์ส่งงาน / โจทย์</label>
-              <input type="text" id="link" placeholder="https://lms.psu.ac.th/..." class="w-full px-3 py-2 border rounded-lg text-sm">
-            </div>
-
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <label class="block text-xs font-medium mb-1">วันเริ่มงาน *</label>
-                <input type="date" id="startDate" required class="w-full px-3 py-2 border rounded-lg text-sm">
-              </div>
-              <div>
-                <label class="block text-xs font-medium mb-1">เวลาเริ่มงาน *</label>
-                <input type="time" id="startTime" value="08:00" required class="w-full px-3 py-2 border rounded-lg text-sm">
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <label class="block text-xs font-medium mb-1">วันสิ้นสุด (ส่ง) *</label>
-                <input type="date" id="dueDate" required class="w-full px-3 py-2 border rounded-lg text-sm">
-              </div>
-              <div>
-                <label class="block text-xs font-medium mb-1">เวลาที่สิ้นสุด *</label>
-                <input type="time" id="dueTime" value="23:59" required class="w-full px-3 py-2 border rounded-lg text-sm">
-              </div>
-            </div>
-
-            <!-- ส่วนตั้งค่าจำนวนรอบและชั่วโมงที่ต้องการให้แจ้งเตือนก่อนหมดเขต (ค่าเริ่มต้น 2 รอบ ลบเหลือ 1 รอบ หรือเพิ่มรอบได้) -->
-            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-              <div class="flex justify-between items-center gap-2">
-                <span class="text-xs font-semibold text-[#164277]">แจ้งเตือนก่อนหมดเขต (<span id="notifyCountLabel">2</span> รอบ)</span>
-                <button type="button" id="addNotifyRoundBtn" class="text-xs bg-white hover:bg-blue-50 text-[#164277] border border-blue-200 font-medium px-2.5 py-1 rounded-lg transition">
-                  + เพิ่มรอบ
+                <button type="button" data-tab="active_all" class="tab-btn text-white">
+                  <div class="flex justify-between items-center gap-2">
+                    <span class="lbl">งานทั้งหมดที่ยังคงส่งการแจ้งเตือนอยู่</span>
+                    <span id="count_active_all" class="lbl px-2 py-0.5 border border-white/40 bg-white/15 text-white">0</span>
+                  </div>
+                </button>
+                <button type="button" data-tab="pending_3days" class="tab-btn text-[#141414]">
+                  <div class="flex justify-between items-center gap-2">
+                    <span class="lbl">งานที่ส่งการแจ้งเตือน ก่อน 3 วันอยู่</span>
+                    <span id="count_pending_3days" class="lbl px-2 py-0.5 border border-[#141414]/25 bg-[#EDEBE6] text-[#141414]">0</span>
+                  </div>
+                </button>
+                <button type="button" data-tab="pending_3hours" class="tab-btn text-[#141414]">
+                  <div class="flex justify-between items-center gap-2">
+                    <span class="lbl">งานที่ส่งการแจ้งเตือน ก่อน 3 ชั่วโมงอยู่</span>
+                    <span id="count_pending_3hours" class="lbl px-2 py-0.5 border border-[#141414]/25 bg-[#EDEBE6] text-[#141414]">0</span>
+                  </div>
+                </button>
+                <button type="button" data-tab="completed_expired" class="tab-btn text-[#141414]">
+                  <div class="flex justify-between items-center gap-2">
+                    <span class="lbl">งานที่หมดเขตและส่งการแจ้งเตือนหมดแล้ว</span>
+                    <span id="count_completed_expired" class="lbl px-2 py-0.5 border border-[#141414]/25 bg-[#EDEBE6] text-[#141414]">0</span>
+                  </div>
                 </button>
               </div>
-              <div id="notifyHoursContainer" class="space-y-1.5"></div>
-              <p class="text-[11px] text-gray-500">ค่าเริ่มต้น 2 รอบ: ก่อนหมดเขต 72 ชม. (3 วัน) และ 3 ชม. (กดลบให้เหลือ 1 รอบ หรือเพิ่มรอบได้)</p>
+
+              <!-- แท็บย่อยในแท็บ (แยกตามรหัสวิชา) + ตัวกรองและการเรียงลำดับ -->
+              <div class="paper-subpanel p-3.5 mb-5 space-y-3">
+                <div>
+                  <div class="lbl text-[#6D6A63] mb-2">แยกตามรหัสวิชา (แท็บย่อย):</div>
+                  <div id="courseSubTabs" class="flex flex-wrap gap-1.5">
+                    <button type="button" data-course="ALL" class="subtab-btn px-2.5 py-1 lbl bg-[#1F3FB0] text-white border border-[#1F3FB0]">
+                      ทุกรหัสวิชา (0)
+                    </button>
+                  </div>
+                </div>
+
+                <div class="pt-2.5 border-t border-[#141414]/20 grid grid-cols-1 sm:grid-cols-12 gap-2">
+                  <div class="sm:col-span-5">
+                    <input type="text" id="searchFilterInput" placeholder="ค้นหาชื่องาน / ชื่อวิชา..." class="paper-input w-full px-2.5 py-1.5 text-xs">
+                  </div>
+                  <div class="sm:col-span-3">
+                    <select id="typeFilterSelect" class="paper-input w-full px-2 py-1.5 text-xs">
+                      <option value="ALL">ทุกหมวดหมู่</option>
+                      <option value="งานเดี่ยว">งานเดี่ยว</option>
+                      <option value="งานกลุ่ม">งานกลุ่ม</option>
+                      <option value="Lab / ปฏิบัติการ">Lab / ปฏิบัติการ</option>
+                      <option value="Quiz / สอบ">Quiz / สอบ</option>
+                      <option value="โปรเจกต์">โปรเจกต์</option>
+                      <option value="ใบงาน">ใบงาน</option>
+                      <option value="ภาพ">ภาพ</option>
+                      <option value="วีดิโอ">วีดิโอ</option>
+                      <option value="เช็คชื่อ">เช็คชื่อ</option>
+                      <option value="เรียน">เรียน</option>
+                      <option value="เรียนชดเชย">เรียนชดเชย</option>
+                    </select>
+                  </div>
+                  <div class="sm:col-span-4">
+                    <select id="sortOrderSelect" class="paper-input w-full px-2 py-1.5 text-xs font-medium text-[#1F3FB0]">
+                      <option value="due_asc">เรียงหมดเขตใกล้สุดก่อน</option>
+                      <option value="due_desc">เรียงหมดเขตไกลสุดก่อน</option>
+                      <option value="course_asc">เรียงตามรหัสวิชา (A-Z)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div id="taskList" class="space-y-3.5">
+                <p class="text-sm text-[#6D6A63] py-6 text-center font-editorial italic">กำลังโหลดข้อมูล...</p>
+              </div>
+
+              <!-- แถบเปลี่ยนหน้าแบบ 10 รายการแล้วนับใหม่ (WORKLOAD) -->
+              <div id="taskPagination" class="hidden mt-5 pt-4 border-t border-[#141414]/20"></div>
             </div>
-
-            <div class="p-3 bg-emerald-50/70 rounded-xl border border-emerald-200">
-              <div class="flex justify-between items-center mb-1.5">
-                <label class="block text-xs font-semibold text-emerald-900">เลือกกลุ่ม LINE ที่แจ้งเตือน</label>
-                <button type="button" id="selectAllGroupsBtn" class="text-[11px] text-emerald-700 hover:underline">เลือกทั้งหมด</button>
-              </div>
-              <div id="groupCheckboxes" class="space-y-1.5">
-                <p class="text-xs text-gray-500">ยังไม่มีกลุ่ม</p>
-              </div>
-            </div>
-
-            <div class="pt-2 flex gap-2">
-              <button type="submit" id="submitBtn" class="flex-1 bg-[#164277] hover:bg-[#10325b] text-white font-medium py-2.5 rounded-lg text-sm transition">
-                บันทึกข้อมูลงาน
-              </button>
-              <button type="button" id="cancelEditBtn" class="hidden bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2.5 rounded-lg text-sm">
-                ยกเลิก
-              </button>
-            </div>
-          </form>
-        </div>
-
-        <!-- กล่องจัดการรายชื่อกลุ่ม LINE -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm">
-          <h2 class="text-base font-semibold text-emerald-700 mb-1">ตั้งค่ารายชื่อกลุ่ม / แชตทดสอบ LINE</h2>
-          <p class="text-xs text-gray-500 mb-3">ใส่ได้ทั้ง Group ID (ขึ้นต้นด้วย C...) หรือ User ID ส่วนตัว (ขึ้นต้นด้วย U...)</p>
-          <form id="groupForm" class="space-y-2 mb-4">
-            <input type="text" id="newGroupName" placeholder="ชื่อเรียก เช่น ส่วนตัว / กลุ่ม Sec 01" required class="w-full px-3 py-2 border rounded-lg text-sm">
-            <div class="flex gap-2">
-              <input type="text" id="newGroupId" placeholder="วาง ID (C... หรือ U...)" required class="flex-1 px-3 py-2 border rounded-lg text-sm">
-              <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium shrink-0">
-                + เพิ่ม
-              </button>
-            </div>
-          </form>
-          <div id="savedGroupsList" class="space-y-2 text-sm"></div>
-        </div>
-
-      </div>
-
-      <!-- คอลัมน์ขวา: รายการงานทั้งหมดพร้อม 4 แท็บหลัก + แท็บย่อยตามรหัสวิชา + ตัวกรอง/เรียงลำดับ -->
-      <div class="lg:col-span-7">
-        <div class="bg-white p-6 rounded-2xl shadow-sm">
-          <div class="flex justify-between items-center mb-4">
-            <h2 class="text-lg font-semibold text-gray-800">รายการงานในระบบ (อัปเดตสด)</h2>
-            <span id="taskCount" class="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full">0 รายการ</span>
-          </div>
-
-          <!-- แถบเลือก 4 แท็บหลัก -->
-          <div id="taskTabs" class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
-            <button type="button" data-tab="active_all" class="tab-btn text-left px-3.5 py-2.5 rounded-xl text-xs font-medium transition border bg-[#164277] text-white border-[#164277]">
-              <div class="flex justify-between items-center gap-2">
-                <span>งานทั้งหมดที่ยังคงส่งการแจ้งเตือนอยู่</span>
-                <span id="count_active_all" class="px-2 py-0.5 rounded-full text-[11px] bg-white/20 text-white">0</span>
-              </div>
-            </button>
-            <button type="button" data-tab="pending_3days" class="tab-btn text-left px-3.5 py-2.5 rounded-xl text-xs font-medium transition border bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100">
-              <div class="flex justify-between items-center gap-2">
-                <span>งานที่ส่งการแจ้งเตือน ก่อน 3 วันอยู่</span>
-                <span id="count_pending_3days" class="px-2 py-0.5 rounded-full text-[11px] bg-gray-200 text-gray-700">0</span>
-              </div>
-            </button>
-            <button type="button" data-tab="pending_3hours" class="tab-btn text-left px-3.5 py-2.5 rounded-xl text-xs font-medium transition border bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100">
-              <div class="flex justify-between items-center gap-2">
-                <span>งานที่ส่งการแจ้งเตือน ก่อน 3 ชั่วโมงอยู่</span>
-                <span id="count_pending_3hours" class="px-2 py-0.5 rounded-full text-[11px] bg-gray-200 text-gray-700">0</span>
-              </div>
-            </button>
-            <button type="button" data-tab="completed_expired" class="tab-btn text-left px-3.5 py-2.5 rounded-xl text-xs font-medium transition border bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100">
-              <div class="flex justify-between items-center gap-2">
-                <span>งานที่หมดเขตและส่งการแจ้งเตือนหมดแล้ว</span>
-                <span id="count_completed_expired" class="px-2 py-0.5 rounded-full text-[11px] bg-gray-200 text-gray-700">0</span>
-              </div>
-            </button>
-          </div>
-
-          <!-- แท็บย่อยในแท็บ (แยกตามรหัสวิชา) + ตัวกรองและการเรียงลำดับ -->
-          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-4 space-y-2.5">
-            <div>
-              <div class="text-[11px] font-medium text-slate-500 mb-1.5">แยกตามรหัสวิชา (แท็บย่อย):</div>
-              <div id="courseSubTabs" class="flex flex-wrap gap-1.5">
-                <button type="button" data-course="ALL" class="subtab-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-[#164277] text-white border border-[#164277]">
-                  ทุกรหัสวิชา (0)
-                </button>
-              </div>
-            </div>
-
-            <div class="pt-2 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-12 gap-2">
-              <div class="sm:col-span-5">
-                <input type="text" id="searchFilterInput" placeholder="ค้นหาชื่องาน / ชื่อวิชา..." class="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs focus:ring-1 focus:ring-[#164277] outline-none">
-              </div>
-              <div class="sm:col-span-3">
-                <select id="typeFilterSelect" class="w-full px-2 py-1.5 bg-white border border-slate-300 rounded-lg text-xs outline-none">
-                  <option value="ALL">ทุกหมวดหมู่</option>
-                  <option value="งานเดี่ยว">งานเดี่ยว</option>
-                  <option value="งานกลุ่ม">งานกลุ่ม</option>
-                  <option value="Lab / ปฏิบัติการ">Lab / ปฏิบัติการ</option>
-                  <option value="Quiz / สอบ">Quiz / สอบ</option>
-                  <option value="โปรเจกต์">โปรเจกต์</option>
-                  <option value="ใบงาน">ใบงาน</option>
-                  <option value="ภาพ">ภาพ</option>
-                  <option value="วีดิโอ">วีดิโอ</option>
-                  <option value="เช็คชื่อ">เช็คชื่อ</option>
-                  <option value="เรียน">เรียน</option>
-                  <option value="เรียนชดเชย">เรียนชดเชย</option>
-                </select>
-              </div>
-              <div class="sm:col-span-4">
-                <select id="sortOrderSelect" class="w-full px-2 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-medium text-[#164277] outline-none">
-                  <option value="due_asc">เรียงหมดเขตใกล้สุดก่อน</option>
-                  <option value="due_desc">เรียงหมดเขตไกลสุดก่อน</option>
-                  <option value="course_asc">เรียงตามรหัสวิชา (A-Z)</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div id="taskList" class="space-y-3">
-            <p class="text-sm text-gray-400">กำลังโหลดข้อมูล...</p>
           </div>
         </div>
       </div>
-    </div>
+    </main>
+
+    <!-- Footer สไตล์ต้นแบบ -->
+    <footer class="max-w-6xl w-full mx-auto px-4 md:px-8 py-6 mt-8 border-t border-[#141414]/20 flex flex-wrap justify-between items-center gap-2">
+      <span class="lbl text-[#6D6A63]">© WORKLOAD NOTIFICATION. ALL RIGHTS RESERVED.</span>
+      <span class="lbl text-[#141414]">FIREBASE / APPS SCRIPT / LINE</span>
+    </footer>
   </div>
 
   <!-- ป๊อปอัพยืนยันก่อนกดส่งทันที -->
-  <div id="confirmSendModal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-[1px] flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 border border-gray-100">
-      <div class="flex items-center gap-3 mb-3">
-        <div class="w-10 h-10 rounded-full bg-blue-100 text-[#164277] flex items-center justify-center shrink-0">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-          </svg>
-        </div>
-        <div>
-          <h3 class="text-base font-semibold text-gray-900">ยืนยันการส่งแจ้งเตือนทันที</h3>
-          <p class="text-xs text-gray-500">ระบบจะส่งการ์ดภาระงานเข้ากลุ่มเป้าหมายทันที</p>
-        </div>
+  <div id="confirmSendModal" class="hidden fixed inset-0 z-50 bg-[#141414]/45 backdrop-blur-[1px] flex items-center justify-center p-4">
+    <div id="confirmSendSheet" class="paper-panel w-full max-w-md relative">
+      <div class="flex h-[5px] w-full">
+        <div class="flex-[5] bg-[#1F3FB0]"></div>
+        <div class="flex-[3] bg-[#3B63D6]"></div>
+        <div class="flex-[2] bg-[#8AA6F5]"></div>
       </div>
-      <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 mb-5 space-y-1 text-xs">
-        <div class="text-[#164277] font-semibold" id="confirmSendCourse"></div>
-        <div class="text-gray-900 font-medium text-sm" id="confirmSendTitle"></div>
-        <div class="text-gray-500 pt-1">กลุ่มเป้าหมาย: <span id="confirmSendGroups" class="text-emerald-700 font-medium"></span></div>
-      </div>
-      <div class="flex justify-end gap-2">
-        <button type="button" id="cancelConfirmSendBtn" class="px-4 py-2 rounded-lg text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium">
-          ยกเลิก
-        </button>
-        <button type="button" id="executeConfirmSendBtn" class="px-4 py-2 rounded-lg text-sm bg-[#164277] hover:bg-[#10325b] text-white font-medium">
-          ยืนยันส่งแจ้งเตือน
-        </button>
+      <div class="p-6">
+        <div class="flex items-start justify-between gap-3 mb-4 pb-3 border-b border-[#141414]/20">
+          <div>
+            <span class="lbl text-[#1F3FB0] block mb-1">MANUAL DISPATCH / ส่งทันที</span>
+            <h3 class="font-editorial text-xl text-[#141414]">ยืนยันการส่งแจ้งเตือนทันที</h3>
+            <p class="text-xs text-[#6D6A63] mt-0.5">ระบบจะส่งการ์ดภาระงานเข้ากลุ่มเป้าหมายทันที</p>
+          </div>
+        </div>
+        <div class="paper-subpanel p-3.5 mb-5 space-y-1.5 text-xs">
+          <div class="lbl text-[#1F3FB0]" id="confirmSendCourse"></div>
+          <div class="font-editorial text-base text-[#141414] font-medium" id="confirmSendTitle"></div>
+          <div class="text-[#6D6A63] pt-1 border-t border-[#141414]/15">
+            กลุ่มเป้าหมาย: <span id="confirmSendGroups" class="text-[#1B5E3A] font-semibold"></span>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2">
+          <button type="button" id="cancelConfirmSendBtn" class="btn-paper px-4 py-2 lbl">
+            ยกเลิก / CANCEL
+          </button>
+          <button type="button" id="executeConfirmSendBtn" class="btn-cobalt px-4 py-2 lbl">
+            ยืนยันส่งแจ้งเตือน / SEND
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- ป๊อปอัพยืนยันรหัสผ่านแอดมินก่อนเพิ่มหรือลบแชต LINE -->
-  <div id="passwordAuthModal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-[1px] flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 border border-gray-100">
-      <div class="flex items-center gap-3 mb-3">
-        <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-          </svg>
-        </div>
-        <div>
-          <h3 id="passwordModalTitle" class="text-base font-semibold text-gray-900">ยืนยันรหัสผ่านแอดมิน</h3>
-          <p id="passwordModalDesc" class="text-xs text-gray-500">กรุณากรอกรหัสผ่านเพื่อดำเนินการต่อ</p>
-        </div>
+  <div id="passwordAuthModal" class="hidden fixed inset-0 z-50 bg-[#141414]/45 backdrop-blur-[1px] flex items-center justify-center p-4">
+    <div id="passwordAuthSheet" class="paper-panel w-full max-w-md relative">
+      <div class="flex h-[5px] w-full">
+        <div class="flex-[5] bg-[#141414]"></div>
+        <div class="flex-[3] bg-[#1F3FB0]"></div>
+        <div class="flex-[2] bg-[#6D6A63]"></div>
       </div>
-      <form id="passwordVerifyForm" class="space-y-4">
-        <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1">รหัสผ่านแอดมิน *</label>
-          <input type="password" id="verifyAdminPasswordInput" required placeholder="กรอกรหัสผ่านที่ใช้เข้าสู่ระบบ" class="w-full px-3.5 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#164277] outline-none">
-          <p id="verifyPasswordError" class="text-red-500 text-xs mt-1.5 hidden"></p>
+      <div class="p-6">
+        <div class="mb-4 pb-3 border-b border-[#141414]/20">
+          <span class="lbl text-[#B8332A] block mb-1">SECURITY CHECK / ยืนยันตัวตน</span>
+          <h3 id="passwordModalTitle" class="font-editorial text-xl text-[#141414]">ยืนยันรหัสผ่านแอดมิน</h3>
+          <p id="passwordModalDesc" class="text-xs text-[#6D6A63] mt-0.5">กรุณากรอกรหัสผ่านเพื่อดำเนินการต่อ</p>
         </div>
-        <div class="flex justify-end gap-2 pt-1">
-          <button type="button" id="cancelPasswordModalBtn" class="px-4 py-2 rounded-lg text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium">
-            ยกเลิก
-          </button>
-          <button type="submit" id="submitPasswordModalBtn" class="px-4 py-2 rounded-lg text-sm bg-[#164277] hover:bg-[#10325b] text-white font-medium">
-            ยืนยัน
-          </button>
-        </div>
-      </form>
+        <form id="passwordVerifyForm" class="space-y-4">
+          <div>
+            <label class="block lbl mb-1.5 text-[#141414]">รหัสผ่านแอดมิน *</label>
+            <input type="password" id="verifyAdminPasswordInput" required placeholder="กรอกรหัสผ่านที่ใช้เข้าสู่ระบบ" class="paper-input w-full px-3.5 py-2 text-sm">
+            <p id="verifyPasswordError" class="text-[#B8332A] text-xs mt-1.5 hidden"></p>
+          </div>
+          <div class="flex justify-end gap-2 pt-1">
+            <button type="button" id="cancelPasswordModalBtn" class="btn-paper px-4 py-2 lbl">
+              ยกเลิก
+            </button>
+            <button type="submit" id="submitPasswordModalBtn" class="btn-cobalt px-4 py-2 lbl">
+              ยืนยัน
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -348,6 +753,7 @@
 
     const GAS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxl8sLK6iLHqQt5yEm0lUYFUbSRBMeYwjsQZY6AK2PrEaOhdTA-lokWWvNkAWzfic6ymQ/exec";
     const MAX_LATE_MS = 65 * 60 * 1000;
+    const ITEMS_PER_PAGE = 10;
 
     const firebaseConfig = {
       apiKey: "AIzaSyC1hcjwUVhSvYLw2JU4sIQoTwI46WVHxyE",
@@ -367,11 +773,66 @@
     let allTasksCache = [];
     let currentTab = "active_all";
     let currentCourseSubTab = "ALL";
+    let currentPage = 1;
     let unsubscribeTasks = null;
     let pendingSendTaskId = null;
     let pendingPasswordCallback = null;
     let editingExistingNotifiedHours = [];
     let editingExistingSkippedHours = [];
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // เคอร์เซอร์วงแหวนแบบ Leon Vasari (rAF เดียวพร้อม exponential smoothing)
+    (function initCustomCursor() {
+      const cursorEl = document.getElementById('customCursor');
+      if (!cursorEl || !window.matchMedia('(pointer: fine)').matches) return;
+
+      let mx = window.innerWidth / 2;
+      let my = window.innerHeight / 2;
+      let cx = mx;
+      let cy = my;
+      let lastTime = performance.now();
+
+      document.addEventListener('pointermove', (e) => {
+        mx = e.clientX;
+        my = e.clientY;
+
+        const target = e.target;
+        cursorEl.classList.remove('open', 'btn', 'spine');
+
+        if (target && target.closest('.test-btn')) {
+          cursorEl.classList.add('open');
+        } else if (target && target.closest('button, a, input, select, textarea, label, [role="button"]')) {
+          cursorEl.classList.add('btn');
+        } else if (target && target.closest('.task-card')) {
+          cursorEl.classList.add('spine');
+        }
+      }, { passive: true });
+
+      function tick(now) {
+        const dt = Math.min(0.05, (now - lastTime) / 1000);
+        lastTime = now;
+        const alpha = prefersReducedMotion ? 1 : (1 - Math.exp(-16 * dt));
+        cx += (mx - cx) * alpha;
+        cy += (my - cy) * alpha;
+        cursorEl.style.transform = `translate3d(${cx.toFixed(2)}px, ${cy.toFixed(2)}px, 0)`;
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    })();
+
+    // แอนิเมชันเปิดแผ่นกระดาษด้วย Web Animations API (ไม่มี Opacity Fade)
+    function animatePaperSheetReveal(el) {
+      if (!el || prefersReducedMotion) return;
+      el.animate([
+        { clipPath: 'inset(6% 6% 6% 6%)', transform: 'rotate(-2deg) scale(0.96)' },
+        { clipPath: 'inset(0% 0% 0% 0%)', transform: 'rotate(0deg) scale(1)' }
+      ], {
+        duration: 520,
+        easing: 'cubic-bezier(.2, .8, .2, 1)',
+        fill: 'both'
+      });
+    }
 
     const todayStr = new Date().toLocaleDateString('en-CA');
     document.getElementById('startDate').value = todayStr;
@@ -391,15 +852,15 @@
 
       roundValues.forEach((val, idx) => {
         const row = document.createElement('div');
-        row.className = 'flex items-center justify-between gap-2 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200';
+        row.className = 'flex items-center justify-between gap-2 bg-[#F4F2ED] px-2.5 py-1.5 border border-[#141414]/25';
         row.innerHTML = `
-          <span class="text-xs text-gray-600">รอบที่ ${idx + 1}: ก่อนหมดเขต</span>
+          <span class="text-xs text-[#141414]">รอบที่ ${idx + 1}: ก่อนหมดเขต</span>
           <div class="flex items-center gap-1.5">
-            <input type="number" step="any" min="0.05" required value="${val}" class="notify-hour-input w-20 px-2 py-1 border rounded text-xs text-right font-medium text-[#164277] focus:ring-1 focus:ring-[#164277] outline-none">
-            <span class="text-xs text-gray-500">ชม.</span>
+            <input type="number" step="any" min="0.05" required value="${val}" class="notify-hour-input paper-input w-20 px-2 py-1 text-xs text-right font-semibold text-[#1F3FB0]">
+            <span class="text-xs text-[#6D6A63]">ชม.</span>
             ${roundValues.length > 1
-              ? `<button type="button" class="remove-round-btn text-xs text-red-500 hover:bg-red-50 px-1.5 py-0.5 rounded transition" title="ลบรอบนี้">ลบ</button>`
-              : `<span class="text-[11px] text-gray-300 px-1.5 py-0.5 select-none">หลัก</span>`
+              ? `<button type="button" class="remove-round-btn lbl text-[#B8332A] hover:underline px-1.5 py-0.5" title="ลบรอบนี้">ลบ</button>`
+              : `<span class="lbl text-[#6D6A63]/50 px-1.5 py-0.5 select-none">หลัก</span>`
             }
           </div>
         `;
@@ -432,16 +893,27 @@
 
     function showBanner(type, message) {
       const banner = document.getElementById('statusBanner');
-      banner.className = "mb-6 p-4 rounded-xl text-sm font-medium border ";
+      banner.className = "mb-6 p-4 text-xs md:text-sm font-medium border border-[#141414] bg-[#F4F2ED] border-l-4 ";
       if (type === "loading") {
-        banner.className += "bg-blue-50 text-blue-800 border-blue-200";
+        banner.className += "border-l-[#1F3FB0] text-[#1F3FB0]";
       } else if (type === "success") {
-        banner.className += "bg-emerald-50 text-emerald-800 border-emerald-200";
+        banner.className += "border-l-[#1B5E3A] text-[#1B5E3A]";
       } else {
-        banner.className += "bg-red-50 text-red-800 border-red-200";
+        banner.className += "border-l-[#B8332A] text-[#B8332A]";
       }
       banner.textContent = message;
       banner.classList.remove('hidden');
+
+      if (!prefersReducedMotion) {
+        banner.animate([
+          { clipPath: 'inset(0 100% 0 0)' },
+          { clipPath: 'inset(0 0% 0 0)' }
+        ], {
+          duration: 420,
+          easing: 'cubic-bezier(.2, .8, .2, 1)',
+          fill: 'both'
+        });
+      }
     }
 
     // เรียก Apps Script เฉพาะเมื่อกดปุ่ม "ส่งทันที" เท่านั้น
@@ -472,6 +944,7 @@
         ? task.targetGroupNames.join(', ')
         : 'ยังไม่ระบุกลุ่ม';
       document.getElementById('confirmSendModal').classList.remove('hidden');
+      animatePaperSheetReveal(document.getElementById('confirmSendSheet'));
     }
 
     function closeConfirmSendModal() {
@@ -499,6 +972,7 @@
       errEl.classList.add('hidden');
       errEl.textContent = '';
       document.getElementById('passwordAuthModal').classList.remove('hidden');
+      animatePaperSheetReveal(document.getElementById('passwordAuthSheet'));
       setTimeout(() => inputEl.focus(), 50);
     }
 
@@ -549,6 +1023,7 @@
       if (user) {
         document.getElementById('loginSection').classList.add('hidden');
         document.getElementById('appSection').classList.remove('hidden');
+        requestAnimationFrame(() => updateTabStyles());
         await loadGroups();
         await loadCoursePresets();
         listenTasksRealtime();
@@ -574,33 +1049,59 @@
 
     document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
 
-    // จัดการการสลับ 4 แท็บหลัก
+    // จัดการการสลับ 4 แท็บหลักพร้อมเลื่อนบล็อกสีน้ำเงิน Cobalt และนับหน้า 1 ใหม่
     document.querySelectorAll('.tab-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         currentTab = btn.dataset.tab;
         currentCourseSubTab = "ALL";
+        currentPage = 1;
         updateTabStyles();
         renderFilteredTasks();
       });
     });
 
-    // จัดการตัวกรองและการเรียงลำดับเพิ่มเติม
-    document.getElementById('searchFilterInput').addEventListener('input', renderFilteredTasks);
-    document.getElementById('typeFilterSelect').addEventListener('change', renderFilteredTasks);
-    document.getElementById('sortOrderSelect').addEventListener('change', renderFilteredTasks);
+    window.addEventListener('resize', () => {
+      if (!document.getElementById('appSection').classList.contains('hidden')) {
+        updateTabStyles();
+      }
+    });
+
+    // จัดการตัวกรองและการเรียงลำดับเพิ่มเติม (นับหน้า 1 ใหม่เมื่อเปลี่ยนเงื่อนไข)
+    document.getElementById('searchFilterInput').addEventListener('input', () => {
+      currentPage = 1;
+      renderFilteredTasks();
+    });
+    document.getElementById('typeFilterSelect').addEventListener('change', () => {
+      currentPage = 1;
+      renderFilteredTasks();
+    });
+    document.getElementById('sortOrderSelect').addEventListener('change', () => {
+      currentPage = 1;
+      renderFilteredTasks();
+    });
 
     function updateTabStyles() {
+      const indicator = document.getElementById('tabCobaltIndicator');
+      let activeBtn = null;
+
       document.querySelectorAll('.tab-btn').forEach((btn) => {
         const isSelected = btn.dataset.tab === currentTab;
         const badge = btn.querySelector('span:last-child');
         if (isSelected) {
-          btn.className = "tab-btn text-left px-3.5 py-2.5 rounded-xl text-xs font-medium transition border bg-[#164277] text-white border-[#164277]";
-          if (badge) badge.className = "px-2 py-0.5 rounded-full text-[11px] bg-white/20 text-white";
+          activeBtn = btn;
+          btn.className = "tab-btn text-white";
+          if (badge) badge.className = "lbl px-2 py-0.5 border border-white/40 bg-white/15 text-white";
         } else {
-          btn.className = "tab-btn text-left px-3.5 py-2.5 rounded-xl text-xs font-medium transition border bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100";
-          if (badge) badge.className = "px-2 py-0.5 rounded-full text-[11px] bg-gray-200 text-gray-700";
+          btn.className = "tab-btn text-[#141414] hover:bg-[#EDEBE6]/60";
+          if (badge) badge.className = "lbl px-2 py-0.5 border border-[#141414]/25 bg-[#EDEBE6] text-[#141414]";
         }
       });
+
+      if (indicator && activeBtn && activeBtn.offsetWidth > 0) {
+        indicator.style.width = `${activeBtn.offsetWidth}px`;
+        indicator.style.height = `${activeBtn.offsetHeight}px`;
+        indicator.style.transform = `translate3d(${activeBtn.offsetLeft}px, ${activeBtn.offsetTop}px, 0)`;
+      }
     }
 
     // จัดการกลุ่ม LINE (ต้องยืนยันรหัสผ่านก่อนเพิ่มและก่อนลบ + เบลอ ID พร้อมปุ่มรูปดวงตา)
@@ -634,36 +1135,36 @@
       savedList.innerHTML = '';
 
       if (allGroups.length === 0) {
-        checkboxContainer.innerHTML = '<p class="text-xs text-gray-500">ยังไม่มีกลุ่ม (เพิ่มกลุ่มด้านล่างก่อน)</p>';
-        savedList.innerHTML = '<p class="text-xs text-gray-400">ยังไม่มีข้อมูลกลุ่ม</p>';
+        checkboxContainer.innerHTML = '<p class="text-xs text-[#6D6A63]">ยังไม่มีกลุ่ม (เพิ่มกลุ่มด้านล่างก่อน)</p>';
+        savedList.innerHTML = '<p class="text-xs text-[#6D6A63]">ยังไม่มีข้อมูลกลุ่ม</p>';
         return;
       }
 
-      const eyeOpenSvg = `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>`;
-      const eyeOffSvg = `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>`;
+      const eyeOpenSvg = `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>`;
+      const eyeOffSvg = `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>`;
 
       allGroups.forEach((g) => {
         const label = document.createElement('label');
-        label.className = 'flex items-center gap-2 text-sm text-gray-800 cursor-pointer bg-white px-2.5 py-1.5 rounded-lg border border-emerald-100';
+        label.className = 'flex items-center gap-2.5 text-sm text-[#141414] bg-[#F4F2ED] px-2.5 py-1.5 border border-[#141414]/25 hover:border-[#1F3FB0] transition';
         label.innerHTML = `
-          <input type="checkbox" name="targetGroups" value="${g.groupId}" data-name="${g.name}" class="rounded text-emerald-600 focus:ring-emerald-500">
+          <input type="checkbox" name="targetGroups" value="${g.groupId}" data-name="${g.name}" class="accent-[#1F3FB0]">
           <span>${g.name}</span>
         `;
         checkboxContainer.appendChild(label);
 
         const row = document.createElement('div');
-        row.className = 'flex justify-between items-center bg-gray-50 px-3 py-2 rounded-lg border gap-2';
+        row.className = 'flex justify-between items-center bg-[#EDEBE6] px-3 py-2 border border-[#141414]/25 gap-2';
         row.innerHTML = `
           <div class="min-w-0 flex-1">
-            <div class="font-medium text-gray-800">${g.name}</div>
+            <div class="font-medium text-[#141414]">${g.name}</div>
             <div class="flex items-center gap-1.5 mt-0.5">
-              <div class="chat-id-text text-[11px] text-gray-500 font-mono truncate blur-sm select-none transition-all duration-150">${g.groupId}</div>
-              <button type="button" class="toggle-id-btn text-gray-400 hover:text-[#164277] p-0.5 rounded shrink-0" title="แสดง/ซ่อน ID แชต">
+              <div class="chat-id-text text-[11px] text-[#6D6A63] font-mono truncate blur-sm select-none transition-all duration-150">${g.groupId}</div>
+              <button type="button" class="toggle-id-btn text-[#6D6A63] hover:text-[#1F3FB0] p-0.5 shrink-0" title="แสดง/ซ่อน ID แชต">
                 ${eyeOpenSvg}
               </button>
             </div>
           </div>
-          <button type="button" class="del-group-btn text-xs text-red-500 hover:underline shrink-0">ลบ</button>
+          <button type="button" class="del-group-btn lbl text-[#B8332A] hover:underline shrink-0">ลบ</button>
         `;
 
         let isIdVisible = false;
@@ -715,7 +1216,7 @@
       const container = document.getElementById('coursePresets');
       const snap = await getDocs(collection(db, "courses"));
       if (snap.empty) {
-        container.innerHTML = '<span class="text-xs text-gray-400">พิมพ์รหัสวิชาและชื่อวิชาด้านล่าง แล้วกด "+ จำวิชานี้ไว้"</span>';
+        container.innerHTML = '<span class="text-xs text-[#6D6A63]">พิมพ์รหัสวิชาและชื่อวิชาด้านล่าง แล้วกด "+ จำวิชานี้ไว้"</span>';
         return;
       }
       container.innerHTML = '';
@@ -723,7 +1224,7 @@
         const c = docSnap.data();
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'text-xs bg-white hover:bg-blue-100 text-[#164277] px-2.5 py-1 rounded-md border border-blue-200 transition';
+        btn.className = 'text-xs bg-[#F4F2ED] hover:bg-[#1F3FB0] text-[#141414] hover:text-white px-2.5 py-1 border border-[#141414]/35 transition';
         btn.textContent = `${c.code} ${c.name}`;
         btn.onclick = () => {
           document.getElementById('courseCode').value = c.code;
@@ -940,25 +1441,27 @@
 
       if (currentCourseSubTab !== "ALL" && !courseMap.has(currentCourseSubTab)) {
         currentCourseSubTab = "ALL";
+        currentPage = 1;
       }
 
       subTabsContainer.innerHTML = '';
 
-      // ปุ่มแท็บย่อย "ทุกรหัสวิชา"
+      // ปุ่มแท็บย่อย "ทุกรหัสวิชา" (คลิกแล้วนับหน้า 1 ใหม่)
       const allBtn = document.createElement('button');
       allBtn.type = 'button';
       const isAllSelected = currentCourseSubTab === "ALL";
       allBtn.className = isAllSelected
-        ? "px-2.5 py-1 rounded-lg text-xs font-medium transition border bg-[#164277] text-white border-[#164277]"
-        : "px-2.5 py-1 rounded-lg text-xs font-medium transition border bg-white text-slate-700 border-slate-300 hover:bg-slate-100";
+        ? "px-2.5 py-1 lbl transition border bg-[#1F3FB0] text-white border-[#1F3FB0]"
+        : "px-2.5 py-1 lbl transition border bg-[#F4F2ED] text-[#141414] border-[#141414]/35 hover:border-[#141414]";
       allBtn.textContent = `ทุกรหัสวิชา (${mainTabTasks.length})`;
       allBtn.onclick = () => {
         currentCourseSubTab = "ALL";
+        currentPage = 1;
         renderFilteredTasks();
       };
       subTabsContainer.appendChild(allBtn);
 
-      // ปุ่มแท็บย่อยแยกตามแต่ละรหัสวิชาในแท็บหลักนั้นๆ
+      // ปุ่มแท็บย่อยแยกตามแต่ละรหัสวิชาในแท็บหลักนั้นๆ (คลิกแล้วนับหน้า 1 ใหม่)
       sortedCodes.forEach((code) => {
         const info = courseMap.get(code);
         const btn = document.createElement('button');
@@ -966,15 +1469,130 @@
         const isSelected = currentCourseSubTab === code;
         btn.title = info.courseName ? `${code} - ${info.courseName}` : code;
         btn.className = isSelected
-          ? "px-2.5 py-1 rounded-lg text-xs font-medium transition border bg-[#164277] text-white border-[#164277]"
-          : "px-2.5 py-1 rounded-lg text-xs font-medium transition border bg-white text-slate-700 border-slate-300 hover:bg-slate-100";
+          ? "px-2.5 py-1 lbl transition border bg-[#1F3FB0] text-white border-[#1F3FB0]"
+          : "px-2.5 py-1 lbl transition border bg-[#F4F2ED] text-[#141414] border-[#141414]/35 hover:border-[#141414]";
         btn.textContent = `${code} (${info.count})`;
         btn.onclick = () => {
           currentCourseSubTab = code;
+          currentPage = 1;
           renderFilteredTasks();
         };
         subTabsContainer.appendChild(btn);
       });
+    }
+
+    // แถบเปลี่ยนหน้าแบบ 10 รายการแล้วนับใหม่ โดยเปลี่ยน "Google" เป็น "WORKLOAD"
+    function renderPagination(totalFiltered, totalPages) {
+      const pagContainer = document.getElementById('taskPagination');
+      if (!pagContainer) return;
+
+      if (totalFiltered === 0) {
+        pagContainer.classList.add('hidden');
+        pagContainer.innerHTML = '';
+        return;
+      }
+
+      pagContainer.classList.remove('hidden');
+      pagContainer.innerHTML = '';
+
+      // แบ่งช่วงเลขหน้าทีละ 10 หน้า (1–10, 11–20, ...) แล้วนับใหม่
+      const windowStart = Math.floor((currentPage - 1) / ITEMS_PER_PAGE) * ITEMS_PER_PAGE + 1;
+      const windowEnd = Math.min(windowStart + ITEMS_PER_PAGE - 1, totalPages);
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'flex flex-col items-center gap-2.5 select-none';
+
+      const navRow = document.createElement('div');
+      navRow.className = 'flex items-start justify-center gap-3 sm:gap-4 flex-wrap';
+
+      const goToPage = (pageNum) => {
+        if (pageNum < 1 || pageNum > totalPages || pageNum === currentPage) return;
+        currentPage = pageNum;
+        renderFilteredTasks();
+        const tabsEl = document.getElementById('taskTabs');
+        if (tabsEl) {
+          tabsEl.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'nearest' });
+        }
+      };
+
+      // ปุ่มย้อนกลับ (เมื่ออยู่หน้า > 1)
+      if (currentPage > 1) {
+        const prevBtn = document.createElement('button');
+        prevBtn.type = 'button';
+        prevBtn.className = 'box-tag lbl mt-1.5 bg-[#EDEBE6]';
+        prevBtn.textContent = '‹ ก่อนหน้า';
+        prevBtn.onclick = () => goToPage(currentPage - 1);
+        navRow.appendChild(prevBtn);
+      }
+
+      // ชุดตัวอักษร "W o o o ... rkload" (แทนที่ Google ด้วย WORKLOAD)
+      const wordGroup = document.createElement('div');
+      wordGroup.className = 'flex items-start justify-center';
+
+      // ตัวอักษรนำ "W"
+      const prefixCol = document.createElement('div');
+      prefixCol.className = 'flex flex-col items-center pr-0.5';
+      prefixCol.innerHTML = `
+        <span class="font-editorial font-bold text-2xl sm:text-[28px] leading-none text-[#1F3FB0]">W</span>
+        <span class="lbl text-[10px] mt-1.5 opacity-0 pointer-events-none">0</span>
+      `;
+      wordGroup.appendChild(prefixCol);
+
+      // ตัวอักษร "o" และเลขหน้า 1..10 (หน้าละ 10 รายการ)
+      for (let p = windowStart; p <= windowEnd; p++) {
+        const isCurrent = p === currentPage;
+        const pageBtn = document.createElement('button');
+        pageBtn.type = 'button';
+        pageBtn.setAttribute('aria-label', `หน้าที่ ${p}`);
+        if (isCurrent) pageBtn.setAttribute('aria-current', 'page');
+
+        pageBtn.className = 'group flex flex-col items-center px-1 sm:px-1.5 focus:outline-none';
+        pageBtn.innerHTML = `
+          <span class="font-editorial font-bold text-2xl sm:text-[28px] leading-none transition ${
+            isCurrent
+              ? 'text-[#B8332A]'
+              : 'text-[#1F3FB0] group-hover:text-[#B8332A]'
+          }">o</span>
+          <span class="lbl text-[10px] mt-1.5 px-1 py-0.5 transition ${
+            isCurrent
+              ? 'bg-[#1F3FB0] text-white'
+              : 'text-[#6D6A63] group-hover:text-[#141414]'
+          }">${p}</span>
+        `;
+        pageBtn.onclick = () => goToPage(p);
+        wordGroup.appendChild(pageBtn);
+      }
+
+      // ตัวอักษรท้าย "rkload"
+      const suffixCol = document.createElement('div');
+      suffixCol.className = 'flex flex-col items-center pl-0.5';
+      suffixCol.innerHTML = `
+        <span class="font-editorial font-bold text-2xl sm:text-[28px] leading-none text-[#1F3FB0]">rkload</span>
+        <span class="lbl text-[10px] mt-1.5 opacity-0 pointer-events-none">0</span>
+      `;
+      wordGroup.appendChild(suffixCol);
+
+      navRow.appendChild(wordGroup);
+
+      // ปุ่มถัดไป (เมื่อยังมีหน้าถัดไป)
+      if (currentPage < totalPages) {
+        const nextBtn = document.createElement('button');
+        nextBtn.type = 'button';
+        nextBtn.className = 'box-tag lbl mt-1.5 bg-[#EDEBE6]';
+        nextBtn.textContent = 'ถัดไป ›';
+        nextBtn.onclick = () => goToPage(currentPage + 1);
+        navRow.appendChild(nextBtn);
+      }
+
+      wrapper.appendChild(navRow);
+
+      // แถบสรุปสถานะการแบ่งหน้า 10 รายการ
+      const summaryLine = document.createElement('div');
+      summaryLine.className = 'lbl text-[10px] text-[#6D6A63] text-center';
+      summaryLine.textContent = `หน้า ${currentPage} จาก ${totalPages} • แสดงทีละ ${ITEMS_PER_PAGE} รายการต่อหน้า`;
+      wrapper.appendChild(summaryLine);
+
+      pagContainer.appendChild(wrapper);
     }
 
     function renderFilteredTasks() {
@@ -1001,6 +1619,9 @@
       document.getElementById('count_pending_3days').textContent = counts.pending_3days;
       document.getElementById('count_pending_3hours').textContent = counts.pending_3hours;
       document.getElementById('count_completed_expired').textContent = counts.completed_expired;
+
+      // อัปเดตตำแหน่งแถบ Cobalt หลังอัปเดตตัวเลขในแท็บ
+      requestAnimationFrame(() => updateTabStyles());
 
       // อัปเดตแท็บย่อยตามรหัสวิชาภายในแท็บหลักที่เลือกอยู่
       renderCourseSubTabs(mainTabTasks);
@@ -1040,65 +1661,83 @@
         return dueA - dueB;
       });
 
-      countEl.textContent = `แสดง ${filtered.length} / ทั้งหมด ${allTasksCache.length} รายการ`;
+      // คำนวณการแบ่งหน้าละ 10 รายการแล้วนับใหม่
+      const totalFiltered = filtered.length;
+      const totalPages = Math.max(1, Math.ceil(totalFiltered / ITEMS_PER_PAGE));
+      if (currentPage > totalPages) {
+        currentPage = totalPages;
+      }
+
+      const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+      const endIdx = Math.min(startIdx + ITEMS_PER_PAGE, totalFiltered);
+      const pageItems = filtered.slice(startIdx, endIdx);
+
+      if (totalFiltered === 0) {
+        countEl.textContent = `แสดง 0 / ทั้งหมด ${allTasksCache.length} รายการ`;
+      } else {
+        countEl.textContent = `แสดง ${startIdx + 1}–${endIdx} จาก ${totalFiltered} รายการ (ทั้งหมด ${allTasksCache.length})`;
+      }
 
       listEl.innerHTML = '';
 
-      if (filtered.length === 0) {
-        listEl.innerHTML = '<p class="text-sm text-gray-400 py-6 text-center">ไม่มีรายการงานที่ตรงกับเงื่อนไขในแท็บนี้</p>';
+      if (pageItems.length === 0) {
+        listEl.innerHTML = '<p class="text-sm text-[#6D6A63] py-8 text-center font-editorial italic">ไม่มีรายการงานที่ตรงกับเงื่อนไขในแท็บนี้</p>';
+        renderPagination(0, 1);
         return;
       }
 
-      filtered.forEach((t) => {
+      pageItems.forEach((t, idx) => {
         const id = t.id;
+        const itemNumberInPage = idx + 1;
         const startTimeStr = t.startTime || '08:00';
         const dueTimeStr = t.dueTime || '23:59';
         const groupsBadge = (t.targetGroupNames && t.targetGroupNames.length > 0)
-          ? t.targetGroupNames.map(name => `<span class="text-[11px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">${name}</span>`).join(' ')
-          : '<span class="text-[11px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">ยังไม่ระบุกลุ่ม</span>';
+          ? t.targetGroupNames.map(name => `<span class="lbl text-[10px] border border-[#1B5E3A] text-[#1B5E3A] px-2 py-0.5">${name}</span>`).join(' ')
+          : '<span class="lbl text-[10px] border border-[#B8332A] text-[#B8332A] px-2 py-0.5">ยังไม่ระบุกลุ่ม</span>';
 
         const { thresholds, notified, skipped } = getTaskScheduleInfo(t);
         const scheduleBadgesHtml = thresholds.map((h) => {
           const isSent = notified.some(sentH => Math.abs(sentH - h) < 0.0001);
           const isSkipped = skipped.some(skipH => Math.abs(skipH - h) < 0.0001);
           if (isSent) {
-            return `<span class="text-emerald-600 font-semibold">ก่อน ${h} ชม.: ส่งแล้ว</span>`;
+            return `<span class="text-[#1B5E3A] font-semibold">ก่อน ${h} ชม.: ส่งแล้ว</span>`;
           }
           if (isSkipped) {
-            return `<span class="text-gray-400">ก่อน ${h} ชม.: เลยรอบเวลาแล้ว</span>`;
+            return `<span class="text-[#6D6A63]">ก่อน ${h} ชม.: เลยรอบเวลาแล้ว</span>`;
           }
-          return `<span class="text-[#164277] font-medium">ก่อน ${h} ชม.: รอส่งตามกำหนด</span>`;
+          return `<span class="text-[#1F3FB0] font-semibold">ก่อน ${h} ชม.: รอส่งตามกำหนด</span>`;
         }).join(' • ');
 
         const card = document.createElement('div');
-        card.className = 'border rounded-xl p-4 hover:border-[#164277] transition bg-gray-50';
+        card.className = 'task-card p-4 relative';
         card.innerHTML = `
           <div class="flex justify-between items-start gap-3">
-            <div class="space-y-1">
+            <div class="space-y-1.5 min-w-0 flex-1">
               <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="text-xs font-semibold bg-blue-100 text-[#164277] px-2 py-0.5 rounded">${t.courseCode}</span>
-                <span class="text-xs font-medium text-gray-600">${t.courseName}</span>
-                <span class="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded">${t.taskType}</span>
-                ${t.status === 'Cancelled' ? '<span class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded">ยกเลิกแล้ว</span>' : ''}
+                <span class="lbl border border-[#141414]/40 bg-[#EDEBE6] text-[#141414] px-1.5 py-0.5">#${String(itemNumberInPage).padStart(2, '0')}</span>
+                <span class="lbl bg-[#1F3FB0] text-white px-2 py-0.5">${t.courseCode}</span>
+                <span class="lbl text-[#141414]">${t.courseName}</span>
+                <span class="lbl border border-[#141414]/40 text-[#141414] px-2 py-0.5">${t.taskType}</span>
+                ${t.status === 'Cancelled' ? '<span class="lbl bg-[#B8332A] text-white px-2 py-0.5">ยกเลิกแล้ว</span>' : ''}
               </div>
-              <h3 class="font-semibold text-gray-900">${t.taskTitle}</h3>
-              <p class="text-sm text-gray-600">${t.description || '-'}</p>
-              ${t.link ? `<a href="${t.link}" target="_blank" class="inline-block text-xs text-[#164277] hover:underline break-all">${t.link}</a>` : ''}
-              <div class="pt-1 flex flex-wrap gap-1 items-center">
-                <span class="text-[11px] text-gray-500">กลุ่มเป้าหมาย:</span> ${groupsBadge}
+              <h3 class="font-editorial text-lg md:text-xl font-normal text-[#141414] leading-snug pt-0.5">${t.taskTitle}</h3>
+              <p class="text-sm text-[#6D6A63] leading-relaxed">${t.description || '-'}</p>
+              ${t.link ? `<a href="${t.link}" target="_blank" class="inline-block text-xs text-[#1F3FB0] hover:underline break-all">${t.link}</a>` : ''}
+              <div class="pt-1.5 flex flex-wrap gap-1.5 items-center">
+                <span class="lbl text-[#6D6A63]">กลุ่มเป้าหมาย:</span> ${groupsBadge}
               </div>
-              <div class="text-xs text-gray-500 pt-1 flex flex-wrap gap-3">
-                <span>เริ่ม: <b>${t.startDate} (${startTimeStr} น.)</b></span>
-                <span class="text-red-600">ส่ง: <b>${t.dueDate} (${dueTimeStr} น.)</b></span>
+              <div class="text-xs text-[#6D6A63] pt-2 mt-1 border-t border-[#141414]/15 flex flex-wrap gap-3">
+                <span>เริ่ม: <b class="text-[#141414]">${t.startDate} (${startTimeStr} น.)</b></span>
+                <span class="text-[#B8332A]">ส่ง: <b>${t.dueDate} (${dueTimeStr} น.)</b></span>
               </div>
-              <div class="text-[11px] text-gray-400 flex flex-wrap gap-1.5">
-                <span class="text-gray-500">แจ้งเตือนก่อนหมด (${thresholds.length} รอบ):</span> ${scheduleBadgesHtml}
+              <div class="text-[11px] flex flex-wrap gap-1.5 pt-0.5">
+                <span class="text-[#6D6A63]">แจ้งเตือนก่อนหมด (${thresholds.length} รอบ):</span> ${scheduleBadgesHtml}
               </div>
             </div>
             <div class="flex flex-col gap-1.5 shrink-0">
-              <button class="test-btn text-xs bg-[#164277] hover:bg-[#10325b] text-white px-3 py-1.5 rounded-lg font-medium">ส่งทันที</button>
-              <button class="edit-btn text-xs bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-1.5 rounded-lg">แก้ไข</button>
-              <button class="del-btn text-xs bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 rounded-lg">ลบ</button>
+              <button class="test-btn btn-cobalt px-3 py-1.5 lbl">ส่งทันที</button>
+              <button class="edit-btn btn-paper px-3 py-1.5 lbl">แก้ไข</button>
+              <button class="del-btn px-3 py-1.5 lbl border border-[#B8332A] text-[#B8332A] hover:bg-[#B8332A] hover:text-white transition">ลบ</button>
             </div>
           </div>
         `;
@@ -1145,7 +1784,21 @@
         };
 
         listEl.appendChild(card);
+
+        if (!prefersReducedMotion && idx < ITEMS_PER_PAGE) {
+          card.animate([
+            { clipPath: 'inset(0 0 100% 0)', transform: 'translateY(14px)' },
+            { clipPath: 'inset(0 0 0% 0)', transform: 'translateY(0)' }
+          ], {
+            duration: 550,
+            delay: idx * 35,
+            easing: 'cubic-bezier(.2, .8, .2, 1)',
+            fill: 'both'
+          });
+        }
       });
+
+      renderPagination(totalFiltered, totalPages);
     }
 
     // อัปเดตการจัดกลุ่มแท็บอัตโนมัติทุก 15 วินาที กรณีมีงานหมดเขตระหว่างเปิดหน้าเว็บ
