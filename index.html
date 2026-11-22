@@ -4,9 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ระบบบริหารจัดการภาระงานและการแจ้งเตือน LINE — Workload Notification System</title>
-  <link rel="icon" type="image/png" sizes="32x32" href="https://i.postimg.cc/2SxLqhM1/d-sin-th-y-ngmi-di-t-ngch-x.png?v=3">
-  <link rel="shortcut icon" type="image/png" href="https://i.postimg.cc/2SxLqhM1/d-sin-th-y-ngmi-di-t-ngch-x.png?v=3">
-  <link rel="apple-touch-icon" sizes="180x180" href="https://i.postimg.cc/2SxLqhM1/d-sin-th-y-ngmi-di-t-ngch-x.png?v=3">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -51,7 +48,6 @@
       }
     }
 
-    /* เกรนกระดาษทั้งหน้าจอแบบ Multiply */
     .paper-grain {
       position: fixed;
       inset: 0;
@@ -64,7 +60,6 @@
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 .45  0 0 0 0 .42  0 0 0 0 .38  0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
     }
 
-    /* ระบบป้ายกำกับและกรอบแบบแค็ตตาล็อกสิ่งพิมพ์ */
     .lbl {
       font-family: var(--font-sans);
       font-weight: 600;
@@ -96,7 +91,6 @@
       font-family: var(--font-serif);
     }
 
-    /* แผ่นกระดาษหลัก */
     .paper-panel {
       background-color: var(--sheet);
       border: 1px solid var(--rule);
@@ -108,7 +102,6 @@
       border: 1px solid var(--rule-mid);
     }
 
-    /* ช่องกรอกข้อมูลสไตล์สิ่งพิมพ์ */
     .paper-input {
       background-color: var(--sheet);
       border: 1px solid var(--rule-mid);
@@ -128,7 +121,6 @@
       color: var(--muted);
     }
 
-    /* ปุ่มเลือกตัวเลือกของระบบเอง (แทนที่ select ของ Safari) */
     .custom-select-trigger {
       background-color: var(--sheet);
       border: 1px solid var(--rule-mid);
@@ -150,7 +142,6 @@
       background-color: #FAF9F6;
     }
 
-    /* ปุ่มหลักสีน้ำเงิน Cobalt */
     .btn-cobalt {
       background-color: var(--cobalt);
       color: #F4F2ED;
@@ -175,7 +166,6 @@
       color: var(--sheet);
     }
 
-    /* แถบนำทางแยกหน้าหลัก (Page Switcher) */
     .page-nav-shell {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -198,7 +188,6 @@
       transition: background-color .3s var(--ease), color .3s var(--ease);
     }
 
-    /* แถบแท็บสถานะพร้อมบล็อกสีน้ำเงิน Cobalt เลื่อนสไลด์ */
     .tabs-shell {
       position: relative;
       display: grid;
@@ -235,7 +224,6 @@
       transition: color .45s var(--ease);
     }
 
-    /* ชั้นแฟ้มสมุดแบบ Shelf Hero */
     .shelf-hero-stage {
       background-color: var(--paper);
       border: 1px solid var(--rule-mid);
@@ -314,7 +302,6 @@
       transform: rotate(0deg) scale(1.05);
     }
 
-    /* การ์ดรายการงาน + แถบความคืบหน้ากดค้าง */
     .task-card {
       background-color: var(--sheet);
       border: 1px solid var(--rule-mid);
@@ -345,11 +332,7 @@
       z-index: 5;
     }
 
-    /* ===================================================================== */
-    /* แอนิเมชันกางเปิดปกสมุดทะเบียน 3 มิติ (รองรับ Safari / iPadOS สมบูรณ์)    */
-    /* ห้ามใส่ backdrop-filter หรือ transform บน .ledger-book-stage           */
-    /* เพื่อไม่ให้ WebKit ตัดการแสดงผล 3 มิติของปกหน้าและปกใน                    */
-    /* ===================================================================== */
+    /* แอนิเมชันกางเปิดปกสมุดทะเบียน 3 มิติ */
     .ledger-book-overlay {
       position: fixed;
       inset: 0;
@@ -377,7 +360,6 @@
       -webkit-transform-style: preserve-3d;
     }
 
-    /* แผ่นหน้ากระดาษฝั่งขวาของสมุด (เปิดเผยเมื่อปกกางออก) */
     .ledger-book-page {
       position: absolute;
       inset: 0;
@@ -398,7 +380,6 @@
       );
     }
 
-    /* สันร่องกลางสมุดด้านขวา */
     .ledger-book-page::before {
       content: "";
       position: absolute;
@@ -410,7 +391,6 @@
       pointer-events: none;
     }
 
-    /* แผ่นกระดาษรองปกตรงกลางที่พลิกตามปกแข็ง */
     .ledger-book-flyleaf {
       position: absolute;
       inset: 3px 3px 3px 10px;
@@ -428,7 +408,6 @@
       pointer-events: none;
     }
 
-    /* ปกสมุดแข็ง 2 ด้าน (ปกหน้า + ปกใน) ที่หมุนกางออกจากสันซ้าย */
     .ledger-book-cover {
       position: absolute;
       inset: 0;
@@ -480,7 +459,6 @@
       border-right: 1px solid rgba(244, 242, 237, .35);
     }
 
-    /* เคอร์เซอร์วงแหวน */
     .custom-cursor {
       display: none;
     }
@@ -565,7 +543,6 @@
       }
     }
 
-    /* Scrollbar เรียบแบบกระดาษ */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -583,14 +560,12 @@
 </head>
 <body>
 
-  <!-- เลเยอร์เกรนกระดาษ -->
   <div class="paper-grain" aria-hidden="true"></div>
 
-  <!-- แอนิเมชันกางเปิดปกสมุดทะเบียน 3 มิติ (Archival Ledger Book Spread Opening) -->
+  <!-- แอนิเมชันกางเปิดปกสมุดทะเบียน 3 มิติ -->
   <div id="ledgerBookOverlay" class="ledger-book-overlay" aria-hidden="true">
     <div id="ledgerBookRig" class="ledger-book-rig">
       <div id="ledgerBookStage" class="ledger-book-stage">
-        <!-- แผ่นกระดาษด้านขวาของสมุด (เปิดเผยเมื่อปกกางออก) -->
         <div class="ledger-book-page">
           <div>
             <span id="ledgerBookInnerTag" class="lbl text-[9px] sm:text-[10px] text-[#1F3FB0] block">ARCHIVAL FOLIO • 01</span>
@@ -609,7 +584,6 @@
           </div>
         </div>
 
-        <!-- แผ่นกระดาษรองปกตรงกลางที่พลิกตามปกแข็ง -->
         <div id="ledgerBookFlyleaf" class="ledger-book-flyleaf">
           <div>
             <span class="lbl text-[8.5px] text-[#6D6A63]">INDEX SHEET</span>
@@ -620,9 +594,7 @@
           </div>
         </div>
 
-        <!-- ปกสมุดแข็ง 2 ด้าน (ปกหน้า + ปกในฝั่งซ้าย) ที่หมุนกางออกจากสันซ้าย -->
         <div id="ledgerBookCover" class="ledger-book-cover">
-          <!-- ปกหน้า -->
           <div id="ledgerCoverFront" class="ledger-cover-front pl-5 sm:pl-6">
             <div class="ledger-book-spine"></div>
             <div class="flex h-[6px] w-full">
@@ -650,7 +622,6 @@
             </div>
           </div>
 
-          <!-- ปกในด้านซ้าย (ปรากฏเมื่อปกสมุดกางออกเกิน 90 องศา) -->
           <div class="ledger-cover-back">
             <div class="border border-[#141414]/30 bg-[#F4F2ED] p-2.5 sm:p-3.5 space-y-1.5">
               <span class="lbl text-[8.5px] text-[#1F3FB0] block">EX LIBRIS • ARCHIVE</span>
@@ -691,7 +662,6 @@
 
     <div class="w-full max-w-md mx-auto my-auto py-6">
       <div class="paper-panel relative">
-        <!-- แถบเรขาคณิตสีน้ำเงินด้านบน -->
         <div class="flex h-[5px] w-full">
           <div class="flex-[5] bg-[#1F3FB0]"></div>
           <div class="flex-[3] bg-[#3B63D6]"></div>
@@ -700,7 +670,6 @@
 
         <div class="p-6 sm:p-8 md:p-10">
           <div class="text-center mb-8">
-            <img src="https://i.postimg.cc/2SxLqhM1/d-sin-th-y-ngmi-di-t-ngch-x.png?v=3" alt="โลโก้ระบบบริหารจัดการภาระงาน" class="w-16 h-16 mx-auto mb-3.5 object-cover border border-[#141414]/25 shadow-sm">
             <div class="font-editorial font-bold text-[22px] sm:text-[24px] tracking-[.03em] text-[#1F3FB0] leading-tight">
               ระบบบริหารจัดการภาระงาน
             </div>
@@ -739,44 +708,42 @@
 
   <!-- หน้าจอจัดการข้อมูลหลัก -->
   <div id="appSection" class="hidden min-h-screen flex flex-col relative z-10">
-    <!-- Top Bar: แยก 2 แถวบนมือถือไม่ให้ซ้อนทับกัน และเรียง 3 คอลัมน์บนหน้าจอใหญ่ -->
     <header class="w-full px-4 md:px-8 py-3 md:py-0 md:h-[84px] border-b border-[#141414]/20 flex flex-col gap-2.5 md:grid md:grid-cols-[1fr_auto_1fr] md:items-center bg-[#EDEBE6]/95 backdrop-blur-[2px] sticky top-0 z-30">
       <div class="flex items-center justify-between gap-2 md:contents">
-        <div class="flex items-center justify-start md:order-1">
+        <div class="flex items-center justify-start gap-2 md:order-1">
           <span class="box-tag lbl text-[9px] md:text-[10.5px]">INDEX / ระบบผู้ดูแล</span>
+          <button type="button" id="healthCheckBtn" class="box-tag lbl text-[9px] md:text-[10.5px] bg-[#F4F2ED]">
+            ตรวจสอบระบบ / STATUS
+          </button>
         </div>
 
         <div class="flex items-center justify-end gap-3 md:order-3">
-          <span class="lbl text-[#6D6A63] hidden lg:inline">AUTO 72H &amp; 3H</span>
+          <span class="lbl text-[#6D6A63] hidden lg:inline">DUE REMINDER ONLY</span>
           <button id="logoutBtn" class="box-tag lbl text-[9px] md:text-[10.5px]">
             ออกจากระบบ / LOGOUT
           </button>
         </div>
       </div>
 
-      <div class="flex items-center justify-center gap-2.5 sm:gap-3 text-center select-none md:order-2">
-        <img src="https://i.postimg.cc/2SxLqhM1/d-sin-th-y-ngmi-di-t-ngch-x.png?v=3" alt="โลโก้ระบบบริหารจัดการภาระงาน" class="w-9 h-9 md:w-10 md:h-10 object-cover border border-[#141414]/25 shrink-0">
-        <div class="flex flex-col items-center sm:items-start justify-center">
-          <span class="font-editorial font-bold text-[18px] sm:text-[20px] md:text-[22px] leading-tight tracking-[.03em] md:tracking-[.04em] text-[#1F3FB0]">
-            ระบบบริหารจัดการภาระงานและการแจ้งเตือน
-          </span>
-          <span class="lbl text-[8px] md:text-[9px] leading-none tracking-[.22em] md:tracking-[.3em] pl-[.22em] md:pl-[.3em] text-[#1F3FB0] mt-[4px] md:mt-[5px]">
-            WORKLOAD NOTIFICATION SYSTEM
-          </span>
-        </div>
+      <div class="flex flex-col items-center justify-center text-center select-none md:order-2">
+        <span class="font-editorial font-bold text-[18px] sm:text-[20px] md:text-[22px] leading-tight tracking-[.03em] md:tracking-[.04em] text-[#1F3FB0]">
+          ระบบบริหารจัดการภาระงานและการแจ้งเตือน
+        </span>
+        <span class="lbl text-[8px] md:text-[9px] leading-none tracking-[.22em] md:tracking-[.3em] pl-[.22em] md:pl-[.3em] text-[#1F3FB0] mt-[4px] md:mt-[5px]">
+          WORKLOAD NOTIFICATION SYSTEM
+        </span>
       </div>
     </header>
 
     <main class="max-w-5xl w-full mx-auto px-4 md:px-8 py-5 md:py-8 flex-1">
-      <!-- คำอธิบายย่อยใต้ Top bar -->
       <div class="flex flex-wrap justify-between items-baseline gap-2 pb-4 mb-5 border-b border-[#141414]/20">
         <p class="font-editorial italic text-sm md:text-base text-[#6D6A63]">
-          ระบบแจ้งเตือนอัตโนมัติล่วงหน้า 2 รอบ (ก่อนกำหนดส่ง 3 วัน และ 3 ชั่วโมง) สามารถปรับตั้งค่ารอบแจ้งเตือนเพิ่มเติมหรือส่งแจ้งเตือนด้วยตนเองได้ทันที
+          ระบบแจ้งเตือนเฉพาะรอบล่วงหน้าก่อนครบกำหนดส่งเท่านั้น (ไม่มีการแจ้งเตือนเมื่อเริ่มงานหรือบันทึกงานใหม่)
         </p>
-        <span class="lbl text-[#1F3FB0]">SCHEDULED DISPATCH</span>
+        <span class="lbl text-[#1F3FB0]">DEADLINE REMINDER ONLY</span>
       </div>
 
-      <!-- แถบนำทางแยกแต่ละหน้าอย่างชัดเจน (กางเปิดสมุดให้เห็นชัดเจนก่อนเปลี่ยนหน้าตามหัวข้อที่เลือก) -->
+      <!-- แถบนำทางแยกแต่ละหน้า -->
       <nav aria-label="เมนูหลักของระบบ" class="page-nav-shell mb-6">
         <button type="button" id="navPageRegistryBtn" data-page="registry" class="page-nav-btn bg-[#1F3FB0] text-white">
           <div class="lbl text-[9px] opacity-80">PAGE 01 • REGISTRY</div>
@@ -798,11 +765,10 @@
       <div id="statusBanner" class="hidden mb-6 p-4 text-xs md:text-sm font-medium border border-[#141414]"></div>
 
       <!-- ===================================================================== -->
-      <!-- หน้าที่ 1: ทะเบียนรายการภาระงาน (แยกหน้าเต็มชัดเจน)                        -->
+      <!-- หน้าที่ 1: ทะเบียนรายการภาระงาน                                          -->
       <!-- ===================================================================== -->
       <section id="pageRegistry" class="block">
         <div class="paper-panel">
-          <!-- แถบสีน้ำเงินเรขาคณิตด้านบนการ์ด -->
           <div class="flex h-[5px] w-full">
             <div class="flex-[2] bg-[#8AA6F5]"></div>
             <div class="flex-[3] bg-[#3B63D6]"></div>
@@ -825,7 +791,7 @@
               </div>
             </div>
 
-            <!-- แถบเลือก 4 แท็บหลักพร้อมบล็อกสีน้ำเงิน Cobalt เลื่อนสไลด์ -->
+            <!-- แถบเลือก 4 แท็บหลัก -->
             <div id="taskTabs" class="tabs-shell mb-4">
               <div id="tabCobaltIndicator" class="tab-cobalt-indicator" aria-hidden="true"></div>
 
@@ -855,7 +821,7 @@
               </button>
             </div>
 
-            <!-- แท็บย่อยในแท็บ (จำแนกตามรหัสวิชา) + ป๊อปอัพตัวกรองของระบบเอง (ไม่ใช้ select ของ Safari) -->
+            <!-- แท็บย่อยในแท็บ (จำแนกตามรหัสวิชา) + ตัวกรอง -->
             <div class="paper-subpanel p-3.5 mb-5 space-y-3">
               <div>
                 <div class="lbl text-[#6D6A63] mb-2">จำแนกตามรหัสวิชา:</div>
@@ -887,7 +853,7 @@
               </div>
             </div>
 
-            <!-- ชั้นแฟ้มสมุดทะเบียนแบบ Shelf Hero (สันปกเรียงแนวนอน + ปกเอียงตรงกลาง) -->
+            <!-- ชั้นแฟ้มสมุดทะเบียนแบบ Shelf Hero -->
             <div id="taskShelfHeroWrapper" class="hidden mb-5">
               <div class="flex flex-wrap justify-between items-center gap-2 mb-2">
                 <span class="lbl text-[#1F3FB0]">ARCHIVAL SHELF • ชั้นแฟ้มภาระงาน (แตะปกหน้าหรือกดค้างเพื่อเปิดสมุดรายละเอียดเต็มจอ)</span>
@@ -901,7 +867,6 @@
               </div>
             </div>
 
-            <!-- คำแนะนำการกดค้างเพื่อเปิดสมุดรายละเอียดเต็มจอ -->
             <div class="flex justify-between items-center gap-2 mb-3">
               <span class="lbl text-[#6D6A63]">รายการภาระงานในหน้านี้:</span>
               <span class="lbl text-[9.5px] text-[#1F3FB0]">กดค้างที่รายการเพื่อเปิดสมุดดูรายละเอียดเต็มจอ</span>
@@ -911,18 +876,16 @@
               <p class="text-sm text-[#6D6A63] py-6 text-center font-editorial italic">กำลังโหลดข้อมูลทะเบียนภาระงาน...</p>
             </div>
 
-            <!-- แถบเปลี่ยนหน้าแบบ 10 รายการแล้วนับใหม่ (WORKLOAD) -->
             <div id="taskPagination" class="hidden mt-5 pt-4 border-t border-[#141414]/20"></div>
           </div>
         </div>
       </section>
 
       <!-- ===================================================================== -->
-      <!-- หน้าที่ 2: แบบฟอร์มบันทึกภาระงานใหม่ / แก้ไขข้อมูลภาระงาน (แยกหน้าชัดเจน) -->
+      <!-- หน้าที่ 2: แบบฟอร์มบันทึกภาระงานใหม่ / แก้ไขข้อมูลภาระงาน                  -->
       <!-- ===================================================================== -->
       <section id="pageTaskForm" class="hidden max-w-3xl mx-auto">
         <div class="paper-panel">
-          <!-- แถบสีน้ำเงินเรขาคณิตด้านบนการ์ด -->
           <div class="flex h-[5px] w-full">
             <div class="flex-[5] bg-[#1F3FB0]"></div>
             <div class="flex-[3] bg-[#3B63D6]"></div>
@@ -967,7 +930,6 @@
                 </div>
               </div>
 
-              <!-- ใช้ป๊อปอัพเลือกตัวเลือกของระบบเอง แทน select ของ Safari -->
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label class="block lbl mb-1.5">ประเภทภาระงาน / หมวดหมู่</label>
@@ -1004,11 +966,11 @@
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label class="block lbl mb-1.5">วันที่เริ่มต้น *</label>
+                  <label class="block lbl mb-1.5">วันที่เริ่มต้น (อ้างอิงในทะเบียนเท่านั้น)</label>
                   <input type="date" id="startDate" required class="paper-input w-full px-3 py-2 text-sm">
                 </div>
                 <div>
-                  <label class="block lbl mb-1.5">เวลาเริ่มต้น *</label>
+                  <label class="block lbl mb-1.5">เวลาเริ่มต้น (อ้างอิงในทะเบียนเท่านั้น)</label>
                   <input type="time" id="startTime" value="08:00" required class="paper-input w-full px-3 py-2 text-sm">
                 </div>
               </div>
@@ -1024,7 +986,6 @@
                 </div>
               </div>
 
-              <!-- ส่วนตั้งค่าจำนวนรอบและชั่วโมงที่ต้องการให้แจ้งเตือนก่อนหมดเขต -->
               <div class="p-3.5 paper-subpanel space-y-2.5">
                 <div class="flex justify-between items-center gap-2">
                   <span class="lbl text-[#1F3FB0]">กำหนดรอบแจ้งเตือนล่วงหน้าก่อนครบกำหนด (<span id="notifyCountLabel">2</span> รอบ)</span>
@@ -1033,10 +994,9 @@
                   </button>
                 </div>
                 <div id="notifyHoursContainer" class="space-y-1.5"></div>
-                <p class="text-[11px] text-[#6D6A63]">ค่าเริ่มต้นมาตรฐาน 2 รอบ: ก่อนครบกำหนด 72 ชั่วโมง (3 วัน) และ 3 ชั่วโมง (สามารถเพิ่มหรือลบรอบแจ้งเตือนได้)</p>
+                <p class="text-[11px] text-[#6D6A63]">ระบบจะส่งแจ้งเตือนเฉพาะเมื่อถึงรอบล่วงหน้าก่อนครบกำหนดเท่านั้น (ไม่ส่งข้อความเมื่อเริ่มงานหรือตอนกดบันทึก)</p>
               </div>
 
-              <!-- เลือกกลุ่ม LINE เป้าหมาย -->
               <div class="p-3.5 paper-subpanel">
                 <div class="flex justify-between items-center gap-2 mb-2.5">
                   <label class="block lbl text-[#141414]">เลือกช่องทางกลุ่ม LINE ที่ต้องการแจ้งเตือน</label>
@@ -1061,7 +1021,7 @@
       </section>
 
       <!-- ===================================================================== -->
-      <!-- หน้าที่ 3: การจัดการช่องทางรับการแจ้งเตือน LINE (แยกหน้าชัดเจน)          -->
+      <!-- หน้าที่ 3: การจัดการช่องทางรับการแจ้งเตือน LINE                         -->
       <!-- ===================================================================== -->
       <section id="pageChannels" class="hidden max-w-3xl mx-auto">
         <div class="paper-panel">
@@ -1109,16 +1069,13 @@
       </section>
     </main>
 
-    <!-- Footer สไตล์ต้นแบบ -->
     <footer class="max-w-5xl w-full mx-auto px-4 md:px-8 py-6 mt-8 border-t border-[#141414]/20 flex flex-wrap justify-between items-center gap-2">
       <span class="lbl text-[9px] sm:text-[10.5px] text-[#6D6A63]">© WORKLOAD NOTIFICATION SYSTEM. ALL RIGHTS RESERVED.</span>
       <span class="lbl text-[9px] sm:text-[10.5px] text-[#141414]">FIREBASE / APPS SCRIPT / LINE</span>
     </footer>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- ป๊อปอัพเลือกตัวเลือกของระบบเอง (แทนที่ตัวเลือกของ Safari ทั้งหมด)           -->
-  <!-- ===================================================================== -->
+  <!-- ป๊อปอัพเลือกตัวเลือกของระบบเอง -->
   <div id="customOptionModal" class="hidden fixed inset-0 z-50 bg-[#141414]/45 backdrop-blur-[1px] flex items-center justify-center p-4">
     <div id="customOptionSheet" class="paper-panel w-full max-w-md relative">
       <div class="flex h-[5px] w-full">
@@ -1139,9 +1096,7 @@
     </div>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- ป๊อปอัพแจ้งเตือน / ยืนยันของระบบเอง (แทนที่ alert และ confirm ของ Safari) -->
-  <!-- ===================================================================== -->
+  <!-- ป๊อปอัพแจ้งเตือน / ยืนยันของระบบเอง -->
   <div id="systemDialogModal" class="hidden fixed inset-0 z-50 bg-[#141414]/45 backdrop-blur-[1px] flex items-center justify-center p-4">
     <div id="systemDialogSheet" class="paper-panel w-full max-w-md relative">
       <div class="flex h-[5px] w-full">
@@ -1154,7 +1109,7 @@
           <span id="systemDialogTag" class="lbl text-[#1F3FB0] block mb-1">SYSTEM NOTICE</span>
           <h3 id="systemDialogTitle" class="font-editorial text-xl text-[#141414]">แจ้งเตือนจากระบบ</h3>
         </div>
-        <p id="systemDialogMessage" class="text-sm text-[#141414] leading-relaxed mb-5"></p>
+        <p id="systemDialogMessage" class="text-sm text-[#141414] leading-relaxed mb-5 whitespace-pre-line"></p>
         <div class="flex justify-end gap-2">
           <button type="button" id="systemDialogCancelBtn" class="hidden btn-paper px-4 py-2 lbl">ยกเลิก</button>
           <button type="button" id="systemDialogConfirmBtn" class="btn-cobalt px-5 py-2 lbl">ตกลง</button>
@@ -1163,12 +1118,9 @@
     </div>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- หน้าต่างรายละเอียดภาระงานแบบเต็มจอ (เปิดเมื่อกดค้างที่รายการภาระงาน)       -->
-  <!-- ===================================================================== -->
+  <!-- หน้าต่างรายละเอียดภาระงานแบบเต็มจอ -->
   <div id="taskDetailFullscreenModal" class="hidden fixed inset-0 z-50 bg-[#EDEBE6] overflow-y-auto">
     <div class="min-h-screen flex flex-col">
-      <!-- แถบส่วนหัวเต็มจอ -->
       <header class="w-full px-4 md:px-8 py-3.5 border-b border-[#141414]/25 bg-[#F4F2ED] sticky top-0 z-20 flex flex-wrap items-center justify-between gap-2">
         <div class="flex items-center gap-2">
           <span class="box-tag lbl bg-[#1F3FB0] text-white border-[#1F3FB0]">ARCHIVAL FOLIO</span>
@@ -1179,7 +1131,6 @@
         </button>
       </header>
 
-      <!-- เนื้อหาหลักเต็มจอ -->
       <div id="taskDetailFullscreenBody" class="max-w-4xl w-full mx-auto px-4 md:px-8 py-6 md:py-10 flex-1"></div>
     </div>
   </div>
@@ -1197,7 +1148,7 @@
           <div>
             <span class="lbl text-[#1F3FB0] block mb-1">MANUAL DISPATCH / ส่งแจ้งเตือนด้วยตนเอง</span>
             <h3 class="font-editorial text-xl text-[#141414]">ยืนยันการส่งแจ้งเตือนทันที</h3>
-            <p class="text-xs text-[#6D6A63] mt-0.5">ระบบจะดำเนินการส่งข้อความแจ้งเตือนภาระงานไปยังกลุ่มเป้าหมายทันที</p>
+            <p class="text-xs text-[#6D6A63] mt-0.5">ระบบจะดำเนินการส่งข้อความแจ้งเตือนกำหนดส่งภาระงานไปยังกลุ่มเป้าหมายทันที</p>
           </div>
         </div>
         <div class="paper-subpanel p-3.5 mb-5 space-y-1.5 text-xs">
@@ -1219,7 +1170,7 @@
     </div>
   </div>
 
-  <!-- ป๊อปอัพยืนยันรหัสผ่านแอดมินก่อนเพิ่มหรือลบแชต LINE -->
+  <!-- ป๊อปอัพยืนยันรหัสผ่านแอดมิน -->
   <div id="passwordAuthModal" class="hidden fixed inset-0 z-50 bg-[#141414]/45 backdrop-blur-[1px] flex items-center justify-center p-4">
     <div id="passwordAuthSheet" class="paper-panel w-full max-w-md relative">
       <div class="flex h-[5px] w-full">
@@ -1293,7 +1244,6 @@
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // ชุดตัวเลือกสำหรับป๊อปอัพเลือกตัวเลือกของระบบเอง (ไม่ใช้ของ Safari)
     const TASK_TYPE_OPTIONS = [
       { value: "งานเดี่ยว", label: "งานเดี่ยว" },
       { value: "งานกลุ่ม", label: "งานกลุ่ม" },
@@ -1324,7 +1274,6 @@
       { value: "course_asc", label: "เรียงตามรหัสวิชา (A-Z)" }
     ];
 
-    // ป๊อปอัพแจ้งเตือนและยืนยันของระบบเอง (แทน alert / confirm ของ Safari)
     function showSystemAlert(message, title = "แจ้งเตือนจากระบบ", tag = "SYSTEM NOTICE") {
       return new Promise((resolve) => {
         const modal = document.getElementById('systemDialogModal');
@@ -1383,7 +1332,6 @@
       });
     }
 
-    // ระบบป๊อปอัพเลือกตัวเลือกของระบบเอง (แทนที่ select ของ Safari)
     function openCustomOptionModal({ title, options, currentValue, onSelect }) {
       const modal = document.getElementById('customOptionModal');
       const sheet = document.getElementById('customOptionSheet');
@@ -1500,7 +1448,30 @@
       });
     });
 
-    // เคอร์เซอร์วงแหวน (rAF เดียวพร้อม exponential smoothing)
+    // ปุ่มตรวจสอบสถานะระบบหลังบ้าน (Health Check)
+    document.getElementById('healthCheckBtn').addEventListener('click', async () => {
+      showBanner("loading", "กำลังตรวจสอบความพร้อมและการเชื่อมต่อกับ Google Apps Script...");
+      try {
+        const res = await fetch(GAS_WEBHOOK_URL, {
+          method: "POST",
+          body: JSON.stringify({ action: "health_check" })
+        });
+        const data = await res.json();
+        if (data.ok && data.startNotificationDisabled) {
+          showBanner(
+            "success",
+            `ระบบหลังบ้านพร้อมใช้งาน (ปิดการแจ้งเตือน "เริ่มงานใหม่" เรียบร้อยแล้ว) • งานที่เปิดแจ้งเตือนอยู่ ${data.activeTaskCount ?? 0} รายการ • เวลาเซิร์ฟเวอร์ ${data.serverTimeBangkok || '-'}`
+          );
+        } else if (data.ok) {
+          showBanner("error", "ตรวจพบสคริปต์เวอร์ชันเก่า กรุณาอัปเดต Code.gs และกด Deploy -> New version");
+        } else {
+          showBanner("error", "การตรวจสอบขัดข้อง: " + (data.errors || []).join(" | "));
+        }
+      } catch (err) {
+        showBanner("error", "ไม่สามารถเชื่อมต่อ Apps Script ได้ กรุณาตรวจสอบว่าได้อัปเดต Code.gs และ Deploy เวอร์ชันใหม่แล้ว");
+      }
+    });
+
     (function initCustomCursor() {
       const cursorEl = document.getElementById('customCursor');
       if (!cursorEl || !window.matchMedia('(pointer: fine)').matches) return;
@@ -1539,7 +1510,6 @@
       requestAnimationFrame(tick);
     })();
 
-    // แอนิเมชันเปิดแผ่นกระดาษด้วย Web Animations API
     function animatePaperSheetReveal(el) {
       if (!el || prefersReducedMotion) return;
       el.animate([
@@ -1552,14 +1522,6 @@
       });
     }
 
-    // =========================================================================
-    // แอนิเมชันกางเปิดปกสมุด 3 มิติด้วย requestAnimationFrame (เห็นการกางเปิดชัดทุกเฟรม)
-    // ขั้นที่ 1 (0–380ms): สมุดปิดปกปรากฏขึ้นกลางหน้าจอ
-    // ขั้นที่ 2 (380–720ms): ค้างให้เห็นปกสมุดตามหัวข้อที่เลือก
-    // ขั้นที่ 3 (720–2070ms): ปกแข็งกางเปิดออกทั้ง 2 หน้าช้าๆ (-166deg) พร้อมจัดกึ่งกลางสมุดกางคู่
-    // ขั้นที่ 4 (2070–3120ms): ค้างสมุดที่กางเปิดออกเต็มที่ให้เห็นชัดเจน 1.05 วินาที
-    // ขั้นที่ 5 (3120ms): สลับไปยังตัวเลือกนั้นๆ และค่อยๆ จางฉากสมุดออก (3120–3520ms)
-    // =========================================================================
     function easeInOutCubic(t) {
       return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
     }
@@ -1605,7 +1567,6 @@
       document.getElementById('ledgerBookInnerNote').textContent = innerNote;
       if (coverFront) coverFront.style.backgroundColor = coverColor;
 
-      // ตั้งค่าเริ่มต้นก่อนเริ่มเฟรมแรก
       overlay.style.display = 'flex';
       overlay.style.opacity = '0';
       rig.style.transform = 'translate3d(0px, 18px, 0px) scale(0.92)';
@@ -1642,7 +1603,6 @@
         const elapsed = now - startTime;
 
         if (elapsed < T_APPEAR) {
-          // ขั้นที่ 1: สมุดปิดปกปรากฏขึ้นกลางจอ
           const p = easeOutCubic(elapsed / T_APPEAR);
           overlay.style.opacity = p.toFixed(3);
           const y = (1 - p) * 18;
@@ -1651,13 +1611,11 @@
           cover.style.transform = 'rotateY(0deg)';
           if (flyleaf) flyleaf.style.transform = 'rotateY(0deg)';
         } else if (elapsed < T_COVER_HOLD) {
-          // ขั้นที่ 2: ค้างปกปิดไว้ให้อ่านหัวข้อ
           overlay.style.opacity = '1';
           rig.style.transform = 'translate3d(0px, 0px, 0px) scale(1)';
           cover.style.transform = 'rotateY(0deg)';
           if (flyleaf) flyleaf.style.transform = 'rotateY(0deg)';
         } else if (elapsed < T_OPEN_END) {
-          // ขั้นที่ 3: กางปกแข็งเปิดออกทั้ง 2 หน้าอย่างนุ่มนวลและชัดเจน
           const rawP = (elapsed - T_COVER_HOLD) / (T_OPEN_END - T_COVER_HOLD);
           const p = easeInOutCubic(rawP);
           const coverDeg = -166 * p;
@@ -1670,13 +1628,11 @@
           cover.style.transform = `rotateY(${coverDeg.toFixed(2)}deg)`;
           if (flyleaf) flyleaf.style.transform = `rotateY(${flyleafDeg.toFixed(2)}deg)`;
         } else if (elapsed < T_SPREAD_HOLD) {
-          // ขั้นที่ 4: ค้างสมุดที่กางออกเต็ม 2 หน้าไว้ให้เห็นชัดเจนก่อนเปลี่ยนไปยังตัวเลือกนั้น
           overlay.style.opacity = '1';
           rig.style.transform = `translate3d(${targetShiftX}px, 0px, 0px) scale(1)`;
           cover.style.transform = 'rotateY(-166deg)';
           if (flyleaf) flyleaf.style.transform = 'rotateY(-154deg)';
         } else if (elapsed < T_FADE_END) {
-          // ขั้นที่ 5: เปลี่ยนไปยังตัวเลือกนั้นแล้วค่อยๆ ปิดฉากสมุด
           if (!hasSwitchedTarget) {
             hasSwitchedTarget = true;
             if (typeof onOpenComplete === 'function') onOpenComplete();
@@ -1707,7 +1663,6 @@
       rafId = requestAnimationFrame(step);
     }
 
-    // ระบบสลับหน้าหลัก 3 หน้าอย่างชัดเจน
     function switchAppPage(pageName, options = {}) {
       currentAppPage = pageName;
       const registryEl = document.getElementById('pageRegistry');
@@ -1744,7 +1699,6 @@
       }
     }
 
-    // กด PAGE 01 • REGISTRY -> กางเปิดสมุดให้เห็นชัดเจนก่อนไปยังหน้าทะเบียนรายการภาระงาน
     document.getElementById('navPageRegistryBtn').addEventListener('click', () => {
       playLedgerBookOpen({
         coverCode: "PAGE 01 • REGISTRY",
@@ -1758,7 +1712,6 @@
       });
     });
 
-    // กด PAGE 02 • ENTRY FORM -> กางเปิดสมุดให้เห็นชัดเจนก่อนไปยังหน้าบันทึกภาระงานใหม่
     document.getElementById('navPageFormBtn').addEventListener('click', () => {
       playLedgerBookOpen({
         coverCode: "PAGE 02 • ENTRY FORM",
@@ -1777,7 +1730,6 @@
       });
     });
 
-    // กด PAGE 03 • LINE CHANNELS -> กางเปิดสมุดให้เห็นชัดเจนก่อนไปยังหน้าช่องทางการแจ้งเตือน LINE
     document.getElementById('navPageChannelsBtn').addEventListener('click', () => {
       playLedgerBookOpen({
         coverCode: "PAGE 03 • LINE CHANNELS",
@@ -1836,12 +1788,25 @@
       });
     });
 
-    // หน้าต่างแสดงรายละเอียดภาระงานแบบเต็มจอ (เปิดเมื่อกดค้างที่รายการภาระงาน)
+    function formatTriggerDateTimeBangkok(dueMs, hoursBefore) {
+      if (!dueMs || dueMs === Number.MAX_SAFE_INTEGER) return "-";
+      const triggerMs = dueMs - (hoursBefore * 60 * 60 * 1000);
+      const d = new Date(triggerMs);
+      const datePart = d.toLocaleDateString('en-CA', { timeZone: 'Asia/Bangkok' });
+      const timePart = d.toLocaleTimeString('en-GB', {
+        timeZone: 'Asia/Bangkok',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      return `${datePart} เวลา ${timePart} น.`;
+    }
+
     function openTaskFullscreenDetail(t) {
       const bodyEl = document.getElementById('taskDetailFullscreenBody');
       const modalEl = document.getElementById('taskDetailFullscreenModal');
       const startTimeStr = t.startTime || '08:00';
       const dueTimeStr = t.dueTime || '23:59';
+      const dueMs = toBangkokTimestamp(t.dueDate, dueTimeStr);
       const { thresholds, notified, skipped } = getTaskScheduleInfo(t);
 
       const groupsHtml = (t.targetGroupNames && t.targetGroupNames.length > 0)
@@ -1851,6 +1816,8 @@
       const scheduleRowsHtml = thresholds.map((h, idx) => {
         const isSent = notified.some(sentH => Math.abs(sentH - h) < 0.0001);
         const isSkipped = skipped.some(skipH => Math.abs(skipH - h) < 0.0001);
+        const triggerText = formatTriggerDateTimeBangkok(dueMs, h);
+
         let statusBadge = `<span class="lbl text-[10px] bg-[#1F3FB0] text-white px-2 py-0.5">รอดำเนินการส่งตามกำหนด</span>`;
         if (isSent) {
           statusBadge = `<span class="lbl text-[10px] bg-[#1B5E3A] text-white px-2 py-0.5">ส่งแจ้งเตือนแล้ว</span>`;
@@ -1859,7 +1826,10 @@
         }
         return `
           <div class="flex flex-wrap items-center justify-between gap-2 bg-[#F4F2ED] px-3.5 py-2.5 border border-[#141414]/25">
-            <span class="text-xs sm:text-sm text-[#141414]">รอบที่ ${idx + 1}: แจ้งเตือนล่วงหน้าก่อนครบกำหนด <b>${h} ชั่วโมง</b></span>
+            <div class="text-xs sm:text-sm text-[#141414]">
+              รอบที่ ${idx + 1}: แจ้งเตือนล่วงหน้าก่อนครบกำหนด <b>${h} ชั่วโมง</b>
+              <div class="text-[11px] text-[#6D6A63] mt-0.5">กำหนดส่งข้อความเข้า LINE: <b class="text-[#141414]">${triggerText}</b></div>
+            </div>
             ${statusBadge}
           </div>
         `;
@@ -1900,7 +1870,7 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div class="paper-subpanel p-4">
-                <span class="lbl text-[#6D6A63] block mb-1">วันที่และเวลาเริ่มต้น</span>
+                <span class="lbl text-[#6D6A63] block mb-1">วันที่และเวลาเริ่มต้น (อ้างอิงเท่านั้น)</span>
                 <div class="font-editorial text-lg sm:text-xl text-[#141414]">${t.startDate || '-'} เวลา ${startTimeStr} น.</div>
               </div>
               <div class="paper-subpanel p-4">
@@ -1969,7 +1939,6 @@
 
     document.getElementById('closeTaskDetailFullscreenBtn').addEventListener('click', closeTaskFullscreenDetail);
 
-    // ฟังก์ชันกางเปิดสมุดให้เห็นก่อนเข้าสู่หน้าต่างรายละเอียดภาระงานเต็มจอเมื่อกดค้างหรือแตะปกหน้า
     function triggerLongPressBookDetail(t) {
       playLedgerBookOpen({
         coverCode: `${t.courseCode || 'WORKLOAD'} • ${t.taskType || 'FOLIO'}`,
@@ -1985,7 +1954,6 @@
       });
     }
 
-    // ตัวช่วยติดเหตุการณ์กดค้าง (Long-Press 500ms) สำหรับทั้งหน้าจอสัมผัสและเมาส์
     function attachLongPressHandler(el, progressBarEl, onLongPress) {
       let holdTimer = null;
       let startX = 0;
@@ -2056,7 +2024,6 @@
     const todayStr = new Date().toLocaleDateString('en-CA');
     document.getElementById('startDate').value = todayStr;
 
-    // ค่าเริ่มต้นหลัก 2 รอบ (72 ชม. = 3 วัน และ 3 ชม.) และค่าแนะนำเมื่อกด "+ เพิ่มรอบ"
     const DEFAULT_HOURS_PRESETS = [72, 3, 24, 1, 0.5, 48, 12, 6, 2, 0.25];
 
     function getCurrentNotifyRoundValues() {
@@ -2107,7 +2074,6 @@
       renderNotifyRounds(currentVals);
     });
 
-    // ค่าเริ่มต้น 2 รอบ (ก่อนหมด 3 วัน = 72 ชม. และก่อนหมด 3 ชม. = 3 ชม.)
     renderNotifyRounds([72, 3]);
 
     function showBanner(type, message) {
@@ -2135,7 +2101,6 @@
       }
     }
 
-    // เรียก Apps Script เฉพาะเมื่อกดปุ่ม "ส่งแจ้งเตือนทันที" เท่านั้น
     async function callForceSendAppsScript(taskId) {
       showBanner("loading", "กำลังดำเนินการส่งข้อความแจ้งเตือนไปยัง LINE...");
       try {
@@ -2154,7 +2119,6 @@
       }
     }
 
-    // ควบคุมป๊อปอัพยืนยันก่อนส่งทันที
     function openConfirmSendModal(task) {
       pendingSendTaskId = task.id;
       document.getElementById('confirmSendCourse').textContent = `${task.courseCode || ''} ${task.courseName || ''}`.trim();
@@ -2180,7 +2144,6 @@
       }
     });
 
-    // ควบคุมป๊อปอัพตรวจสอบรหัสผ่านแอดมินก่อนเพิ่ม/ลบแชต LINE
     function openPasswordAuthModal(title, description, onSuccessCallback) {
       pendingPasswordCallback = onSuccessCallback;
       document.getElementById('passwordModalTitle').textContent = title;
@@ -2283,7 +2246,6 @@
 
     document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
 
-    // จัดการการสลับ 4 แท็บหลักพร้อมกางเปิดสมุดตามหัวข้อแท็บที่เลือกให้เห็นก่อนเปลี่ยนไปยังตัวเลือกนั้น
     const TAB_BOOK_META = {
       active_all: {
         code: "TAB 01 • ACTIVE",
@@ -2341,7 +2303,6 @@
       }
     });
 
-    // จัดการตัวกรองค้นหา (นับหน้า 1 ใหม่เมื่อเปลี่ยนเงื่อนไข)
     document.getElementById('searchFilterInput').addEventListener('input', () => {
       currentPage = 1;
       activeShelfIndex = 0;
@@ -2372,7 +2333,6 @@
       }
     }
 
-    // จัดการกลุ่ม LINE (ต้องยืนยันรหัสผ่านก่อนเพิ่มและก่อนลบ + เบลอ ID พร้อมปุ่มรูปดวงตา)
     document.getElementById('groupForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = document.getElementById('newGroupName').value.trim();
@@ -2476,7 +2436,6 @@
       boxes.forEach(b => b.checked = !allChecked);
     });
 
-    // จัดการวิชาด่วน
     document.getElementById('savePresetBtn').addEventListener('click', async () => {
       const code = document.getElementById('courseCode').value.trim();
       const name = document.getElementById('courseName').value.trim();
@@ -2514,7 +2473,6 @@
       });
     }
 
-    // บันทึก / แก้ไขข้อมูลงาน (ไม่ส่งข้อความอัตโนมัติในตอนบันทึกหรือแก้ไข รอส่งเฉพาะเมื่อถึงรอบกำหนดเวลาจริงเท่านั้น)
     document.getElementById('taskForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const selectedBoxes = Array.from(document.querySelectorAll('input[name="targetGroups"]:checked'));
@@ -2526,7 +2484,6 @@
         rawLink = 'https://' + rawLink;
       }
 
-      // อ่านค่าชั่วโมงก่อนหมดเขตทั้งหมดที่ผู้ใช้ตั้งไว้
       const hourInputs = Array.from(document.querySelectorAll('.notify-hour-input'));
       const rawHours = hourInputs
         .map(input => parseFloat(input.value))
@@ -2567,7 +2524,6 @@
       };
 
       if (editId) {
-        // คงรายการรอบที่ "ส่งแล้ว" ไว้ไม่ให้ส่งซ้ำ และแยกเฉพาะรอบที่เลยเวลาไปแล้วไว้ใน skippedHours (ไม่มั่วสถานะเป็นส่งแล้ว)
         const preservedNotified = notifyHoursBefore
           .filter((h) => editingExistingNotifiedHours.some((sentH) => Math.abs(sentH - h) < 0.0001))
           .sort((a, b) => b - a);
@@ -2610,7 +2566,6 @@
           }
         });
       } else {
-        // เพิ่มงานใหม่: ยังไม่มีการส่งข้อความ (notifiedHours = []) และข้ามรอบที่เลยเวลาไปแล้วก่อนเพิ่มงาน (skippedHours)
         const initialSkipped = notifyHoursBefore
           .filter((h) => {
             const triggerTimeMs = dueMs - (h * 60 * 60 * 1000);
@@ -2642,7 +2597,7 @@
           onOpenComplete: () => {
             resetForm();
             switchAppPage('registry', { skipReveal: true });
-            showBanner("success", "บันทึกข้อมูลภาระงานใหม่ลงทะเบียนเรียบร้อยแล้ว (ระบบจะดำเนินการส่งแจ้งเตือนเมื่อถึงรอบเวลาที่กำหนด)");
+            showBanner("success", "บันทึกข้อมูลภาระงานใหม่ลงทะเบียนเรียบร้อยแล้ว (ระบบจะส่งแจ้งเตือนเฉพาะเมื่อถึงรอบล่วงหน้าก่อนครบกำหนดเท่านั้น)");
           }
         });
       }
@@ -2656,7 +2611,6 @@
       return Number.isNaN(parsed) ? Number.MAX_SAFE_INTEGER : parsed;
     }
 
-    // คำนวณสถานะของแต่ละรอบอย่างแม่นยำ: ส่งแล้ว (notified) / เลยรอบเวลาแล้ว (skipped) / รอส่งตามกำหนด (remaining)
     function getTaskScheduleInfo(t) {
       const nowMs = Date.now();
       const dueMs = toBangkokTimestamp(t.dueDate, t.dueTime || "23:59");
@@ -2754,7 +2708,6 @@
 
       subTabsContainer.innerHTML = '';
 
-      // ปุ่มแท็บย่อย "ทุกรหัสวิชา" (กางเปิดสมุดให้เห็นก่อนเปลี่ยนไปยังตัวเลือกนั้น)
       const allBtn = document.createElement('button');
       allBtn.type = 'button';
       const isAllSelected = currentCourseSubTab === "ALL";
@@ -2781,7 +2734,6 @@
       };
       subTabsContainer.appendChild(allBtn);
 
-      // ปุ่มแท็บย่อยแยกตามแต่ละรหัสวิชาในแท็บหลักนั้นๆ (กางเปิดสมุดให้เห็นก่อนเปลี่ยนไปยังวิชานั้น)
       sortedCodes.forEach((code) => {
         const info = courseMap.get(code);
         const btn = document.createElement('button');
@@ -2813,7 +2765,6 @@
       });
     }
 
-    // ชั้นแฟ้มสมุดทะเบียนแบบ Shelf Hero
     const SPINE_PALETTES = [
       { bg: "#5B2118", fg: "#F4F2ED", band: "#B8332A" },
       { bg: "#1E2623", fg: "#F4F2ED", band: "#6D6A63" },
@@ -2910,7 +2861,6 @@
       renderShelfHero(currentPageItemsCache);
     });
 
-    // แถบเปลี่ยนหน้าแบบ 10 รายการแล้วนับใหม่ โดยเปลี่ยน "Google" เป็น "WORKLOAD"
     function renderPagination(totalFiltered, totalPages) {
       const pagContainer = document.getElementById('taskPagination');
       if (!pagContainer) return;
@@ -2924,7 +2874,6 @@
       pagContainer.classList.remove('hidden');
       pagContainer.innerHTML = '';
 
-      // แบ่งช่วงเลขหน้าทีละ 10 หน้า (1–10, 11–20, ...) แล้วนับใหม่
       const windowStart = Math.floor((currentPage - 1) / ITEMS_PER_PAGE) * ITEMS_PER_PAGE + 1;
       const windowEnd = Math.min(windowStart + ITEMS_PER_PAGE - 1, totalPages);
 
@@ -2956,7 +2905,6 @@
         });
       };
 
-      // ปุ่มย้อนกลับ (เมื่ออยู่หน้า > 1)
       if (currentPage > 1) {
         const prevBtn = document.createElement('button');
         prevBtn.type = 'button';
@@ -2966,11 +2914,9 @@
         navRow.appendChild(prevBtn);
       }
 
-      // ชุดตัวอักษร "W o o o ... rkload" (แทนที่ Google ด้วย WORKLOAD)
       const wordGroup = document.createElement('div');
       wordGroup.className = 'flex items-start justify-center max-w-full overflow-x-auto py-0.5';
 
-      // ตัวอักษรนำ "W"
       const prefixCol = document.createElement('div');
       prefixCol.className = 'flex flex-col items-center pr-0.5 shrink-0';
       prefixCol.innerHTML = `
@@ -2979,7 +2925,6 @@
       `;
       wordGroup.appendChild(prefixCol);
 
-      // ตัวอักษร "o" และเลขหน้า 1..10 (หน้าละ 10 รายการ)
       for (let p = windowStart; p <= windowEnd; p++) {
         const isCurrent = p === currentPage;
         const pageBtn = document.createElement('button');
@@ -3004,7 +2949,6 @@
         wordGroup.appendChild(pageBtn);
       }
 
-      // ตัวอักษรท้าย "rkload"
       const suffixCol = document.createElement('div');
       suffixCol.className = 'flex flex-col items-center pl-0.5 shrink-0';
       suffixCol.innerHTML = `
@@ -3015,7 +2959,6 @@
 
       navRow.appendChild(wordGroup);
 
-      // ปุ่มถัดไป (เมื่อยังมีหน้าถัดไป)
       if (currentPage < totalPages) {
         const nextBtn = document.createElement('button');
         nextBtn.type = 'button';
@@ -3027,7 +2970,6 @@
 
       wrapper.appendChild(navRow);
 
-      // แถบสรุปสถานะการแบ่งหน้า 10 รายการ
       const summaryLine = document.createElement('div');
       summaryLine.className = 'lbl text-[10px] text-[#6D6A63] text-center';
       summaryLine.textContent = `หน้าที่ ${currentPage} จากทั้งหมด ${totalPages} หน้า • แสดงหน้าละ ${ITEMS_PER_PAGE} รายการ`;
@@ -3106,13 +3048,9 @@
       document.getElementById('count_pending_3hours').textContent = counts.pending_3hours;
       document.getElementById('count_completed_expired').textContent = counts.completed_expired;
 
-      // อัปเดตตำแหน่งแถบ Cobalt หลังอัปเดตตัวเลขในแท็บ
       requestAnimationFrame(() => updateTabStyles());
-
-      // อัปเดตแท็บย่อยตามรหัสวิชาภายในแท็บหลักที่เลือกอยู่
       renderCourseSubTabs(mainTabTasks);
 
-      // กรองตามแท็บย่อยรหัสวิชา + ประเภทงาน + คำค้นหา
       const searchQuery = document.getElementById('searchFilterInput').value.trim().toLowerCase();
       const typeFilter = document.getElementById('typeFilterSelect').value;
       const sortOrder = document.getElementById('sortOrderSelect').value;
@@ -3132,7 +3070,6 @@
         return true;
       });
 
-      // เรียงลำดับตามตัวเลือก (ค่าเริ่มต้น: วันและเวลาหมดเขตที่ใกล้ที่สุดขึ้นก่อน)
       filtered.sort((a, b) => {
         const dueA = toBangkokTimestamp(a.dueDate, a.dueTime || "23:59");
         const dueB = toBangkokTimestamp(b.dueDate, b.dueTime || "23:59");
@@ -3147,7 +3084,6 @@
         return dueA - dueB;
       });
 
-      // คำนวณการแบ่งหน้าละ 10 รายการแล้วนับใหม่
       const totalFiltered = filtered.length;
       const totalPages = Math.max(1, Math.ceil(totalFiltered / ITEMS_PER_PAGE));
       if (currentPage > totalPages) {
@@ -3165,7 +3101,6 @@
         countEl.textContent = `แสดงลำดับที่ ${startIdx + 1}–${endIdx} จาก ${totalFiltered} รายการ (ทั้งหมด ${allTasksCache.length})`;
       }
 
-      // อัปเดตชั้นแฟ้มสมุดแบบ Shelf Hero
       renderShelfHero(pageItems);
 
       listEl.innerHTML = '';
@@ -3181,6 +3116,8 @@
         const itemNumberInPage = idx + 1;
         const startTimeStr = t.startTime || '08:00';
         const dueTimeStr = t.dueTime || '23:59';
+        const dueMs = toBangkokTimestamp(t.dueDate, dueTimeStr);
+
         const groupsBadge = (t.targetGroupNames && t.targetGroupNames.length > 0)
           ? t.targetGroupNames.map(name => `<span class="lbl text-[10px] border border-[#1B5E3A] text-[#1B5E3A] px-2 py-0.5">${name}</span>`).join(' ')
           : '<span class="lbl text-[10px] border border-[#B8332A] text-[#B8332A] px-2 py-0.5">ยังไม่ระบุช่องทางกลุ่ม</span>';
@@ -3189,13 +3126,15 @@
         const scheduleBadgesHtml = thresholds.map((h) => {
           const isSent = notified.some(sentH => Math.abs(sentH - h) < 0.0001);
           const isSkipped = skipped.some(skipH => Math.abs(skipH - h) < 0.0001);
+          const exactTrigger = formatTriggerDateTimeBangkok(dueMs, h);
+
           if (isSent) {
             return `<span class="text-[#1B5E3A] font-semibold">ก่อน ${h} ชม.: ส่งแจ้งเตือนแล้ว</span>`;
           }
           if (isSkipped) {
             return `<span class="text-[#6D6A63]">ก่อน ${h} ชม.: พ้นกำหนดรอบเวลาแล้ว</span>`;
           }
-          return `<span class="text-[#1F3FB0] font-semibold">ก่อน ${h} ชม.: รอดำเนินการส่งตามกำหนด</span>`;
+          return `<span class="text-[#1F3FB0] font-semibold">ก่อน ${h} ชม. (${exactTrigger}): รอดำเนินการส่งตามกำหนด</span>`;
         }).join(' • ');
 
         const card = document.createElement('div');
@@ -3233,7 +3172,6 @@
           </div>
         `;
 
-        // ติดตั้งการกดค้างเพื่อกางเปิดสมุดและแสดงรายละเอียดแบบเต็มจอ
         const holdProgressBar = card.querySelector('.task-hold-progress');
         attachLongPressHandler(card, holdProgressBar, () => {
           activeShelfIndex = idx;
@@ -3278,7 +3216,6 @@
       renderPagination(totalFiltered, totalPages);
     }
 
-    // อัปเดตการจัดกลุ่มแท็บอัตโนมัติทุก 15 วินาที กรณีมีงานหมดเขตระหว่างเปิดหน้าเว็บ
     setInterval(() => {
       if (allTasksCache.length > 0) renderFilteredTasks();
     }, 15000);
